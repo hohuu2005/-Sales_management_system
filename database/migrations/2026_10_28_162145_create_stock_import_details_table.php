@@ -13,7 +13,12 @@ return new class extends Migration
     {
         Schema::create('stock_import_details', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+            $table->foreignId('stock_import_id')->constrained('stock_imports')->cascadeOnDelete();
+            $table->foreignId('product_id')->constrained('products')->restrictOnDelete();
+            $table->unsignedBigInteger('import_quantity');
+            $table->decimal('import_price', 15, 2);
+            $table->decimal('subtotal', 15, 2);
+            
         });
     }
 

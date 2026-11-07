@@ -13,7 +13,12 @@ return new class extends Migration
     {
         Schema::create('stock_imports', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+            $table->string('import_code', 50)->unique()->index();
+            $table->foreignId('stockkeeper_id')->constrained('users')->restrictOnDelete();
+            $table->string('supplier_name', 150);
+            $table->decimal('total_cost', 15, 2);
+            $table->text('note')->nullable();
+            $table->timestamp('created_at')->useCurrent()->index();
         });
     }
 

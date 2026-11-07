@@ -13,7 +13,15 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+            $table->string('order_number', 50)->unique()->index();
+            $table->foreignId('cashier_id')->constrained('users')->restrictOnDelete();
+            $table->decimal('total_amount', 15, 2);
+            $table->enum('payment_method', ['CASH', 'VIETQR']);
+            $table->enum('status', ['COMPLETED', 'CANCELLED'])->default('COMPLETED');
+            $table->string('note', 255)->nullable();
+            $table->timestamp('completed_at')->useCurrent()->index();
+            $table->index(['completed_at', 'status']);
+
         });
     }
 

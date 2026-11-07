@@ -13,6 +13,15 @@ return new class extends Migration
     {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
+            $table->string('sku_code', 50)->unique()->index();
+            $table->foreignId('category_id')->constrained('categories')->restrictOnDelete();
+            $table->string('name', 200  )->index();
+            $table->string('unit', 30);
+            $table->decimal('cost_price', 15, 2)->default(0);
+            $table->decimal('selling_price', 15, 2);
+            $table->string('image_url', 255)->nullable();
+            $table->json('attributes_json')->nullable();
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
     }

@@ -13,7 +13,12 @@ return new class extends Migration
     {
         Schema::create('inventories', function (Blueprint $table) {
             $table->id();
-            $table->timestamps();
+            $table->foreignId('product_id')->unique()->constrained('products')->cascadeOnDelete();
+            $table->unsignedBigInteger('current_stock')->default(0);
+            $table->unsignedBigInteger('safe_stock')->default(10);
+            $table->string('shelf_location', 50)->nullable();
+
+            $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();
         });
     }
 
