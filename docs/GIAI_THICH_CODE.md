@@ -29,7 +29,7 @@ Kết quả trả về là một trang Blade (`resources/views`) hoặc JSON (ri
 
 ## 3. Phân quyền (`app/Http/Middleware/CheckRole.php`)
 
-Trong route viết `->middleware('role:SALES,ADMIN')` nghĩa là chỉ SALES hoặc ADMIN được vào. `CheckRole` lấy người đang đăng nhập, gọi `User::hasRole()` cho từng vai trò được phép. Không khớp vai trò nào thì trả lỗi 403.
+Trong route viết `->middleware('role:ADMIN,STOCKKEEPER')` nghĩa là chỉ ADMIN hoặc STOCKKEEPER được vào. Màn hình POS khai báo `role:SALES`, đúng với sơ đồ use case: chỉ Nhân viên bán hàng dùng POS. `CheckRole` lấy người đang đăng nhập, gọi `User::hasRole()` cho từng vai trò được phép. Không khớp vai trò nào thì trả lỗi 403.
 
 Thử nhanh: đăng nhập `banhang` rồi gõ địa chỉ `/stock-imports/create` sẽ thấy trang 403.
 
@@ -74,9 +74,9 @@ Tồn kho được kiểm tra hai lần: ở trình duyệt (báo lỗi ngay cho
 | `app/Models/StockImport.php`, `StockImportDetail.php` | Phiếu nhập và các dòng chi tiết |
 | `app/Services/PosOrderService.php` | Nghiệp vụ thanh toán |
 | `app/Services/StockImportService.php` | Nghiệp vụ nhập kho |
-| `app/Services/ProductService.php` | Chưa viết (dành cho chức năng thêm sản phẩm) |
+| `app/Services/ProductService.php` | Tạo và sửa sản phẩm cùng dòng tồn kho trong một transaction |
 | `resources/views/layouts/app.blade.php` | Khung chung: thanh menu theo vai trò, nút đăng xuất, vùng thông báo |
-| `resources/views/...` | `auth/login`, `pos/index`, `pos/history`, `stock_imports/create`, `stock_imports/index`, `products/index` |
+| `resources/views/...` | `auth/login`, `pos/index`, `pos/history`, `stock_imports/create`, `stock_imports/index`, `products/index`, `categories/index`, `users/index`, `reports/revenue`, `reports/inventory` |
 | `public/css/sims.css` | Giao diện, lấy màu và kiểu dáng từ wireframe của nhóm |
 | `public/js/pos.js` | Toàn bộ xử lý phía trình duyệt của màn hình POS |
 
@@ -100,11 +100,44 @@ Vì hóa đơn và phiếu nhập cũ còn tham chiếu tới chúng (khóa ngo�
 **Vì sao `current_stock` là số không dấu (UNSIGNED)?**
 Là lớp chặn cuối cùng ở mức CSDL: nếu có lỗi làm tồn kho xuống dưới 0, MySQL báo lỗi và transaction bị rollback.
 
-## 8. Những phần chưa làm (nên nói thẳng nếu thầy hỏi)
+## 8. Quản lý người dùng và đổi mật khẩu (phần của Hữu)
 
-- Thêm, sửa, xóa danh mục, sản phẩm, người dùng.
-- Báo cáo doanh thu, báo cáo tồn kho.
-- Đổi mật khẩu.
+| Việc | Hàm | Điểm cần nhớ |
+|---|---|---|
+| Thêm tài khoản | `UserController::store()` | Mật khẩu được mã hóa bằng `Hash::make()` rồi mới lưu vào `password_hash` |
+| Sửa thông tin | `UserController::update()` | Kiểm tra trùng mã nhân viên, tên đăng nhập, email nhưng bỏ qua chính tài khoản đang sửa (`Rule::unique(...)->ignore($id)`) |
+| Phân quyền | `UserController::updateRole()` | Không cho tự đổi vai trò của chính mình |
+| Khóa tài khoản | `UserController::destroy()` | Không xóa hẳn, chỉ đặt `is_active = false` để giữ lịch sử hóa đơn; không cho tự khóa chính mình |
+| Đổi mật khẩu | `AuthController::changePassword()` | So mật khẩu cũ bằng `Hash::check()`; mật khẩu mới tối thiểu 8 ký tự, phải nhập lại hai lần và khác mật khẩu cũ |
+
+Trong mỗi controller, phần kiểm tra dữ liệu nằm ở hàm `...Rules()`, phần xử lý nằm ở các hàm nhỏ như `createUser()`, `lockUser()`. Các hàm nhỏ này không dùng `Request` nên có thể chạy thử riêng.
+
+## 9. Quản lý danh mục và hàng hóa (phần của Sơn)
+
+| Việc | Hàm | Điểm cần nhớ |
+|---|---|---|
+| Thêm danh mục | `CategoryController::store()` | Slug tự sinh từ tên: "Thời trang" thành `thoi-trang`; nếu trùng thì thêm `-2`, `-3` |
+| Xóa danh mục | `CategoryController::destroy()` | Chặn nếu danh mục còn sản phẩm |
+| Thêm sản phẩm | `ProductController::store()` gọi `ProductService::createWithInventory()` | Tạo sản phẩm và dòng tồn kho (bằng 0) trong cùng một transaction |
+| Sửa sản phẩm | `ProductController::update()` gọi `ProductService::updateWithInventory()` | Sửa được định mức tồn kho và vị trí kệ, không sửa số tồn kho (tồn kho chỉ đổi qua nhập kho và bán hàng) |
+| Xóa sản phẩm | `ProductController::destroy()` | Sản phẩm đã có trong hóa đơn hoặc phiếu nhập thì chỉ chuyển sang Ngừng bán; chưa có chứng từ thì xóa hẳn |
+| Thuộc tính động | `ProductController::collectAttributes()` | Kích cỡ, màu sắc, hạn dùng được gom thành mảng và lưu vào cột JSON `attributes_json`; ô nào trống thì không lưu |
+
+Nếu giá bán thấp hơn giá vốn, hệ thống vẫn lưu nhưng hiện cảnh báo màu vàng để Admin kiểm tra lại.
+
+## 10. Báo cáo và màn hình POS (phần của Minh)
+
+| Việc | Hàm | Điểm cần nhớ |
+|---|---|---|
+| Báo cáo doanh thu | `ReportController::revenueReport()` gọi `buildRevenue()` | Chỉ tính hóa đơn `COMPLETED` trong khoảng ngày; ngày không có hóa đơn vẫn hiện cột bằng 0; tối đa 62 ngày |
+| Biểu đồ cột | `resources/views/reports/revenue.blade.php` | Vẽ bằng CSS: chiều cao mỗi cột là phần trăm so với ngày cao nhất, không dùng thư viện |
+| Báo cáo tồn kho | `ReportController::inventoryReport()` gọi `buildInventory()` | Sản phẩm có `current_stock <= safety_stock` xếp lên đầu; có bộ lọc chỉ hiện sản phẩm cần nhập thêm |
+| Nút cộng, trừ số lượng | `public/js/pos.js`, hàm `changeQuantity()` | Không cho nhỏ hơn 1 và không cho vượt tồn kho |
+| Nút chọn nhanh số tiền | `public/js/pos.js`, hàm `renderChips()` | Gợi ý: đúng tổng tiền, làm tròn lên 10.000, làm tròn lên 100.000, 500.000, 1.000.000 |
+
+## 11. Những phần chưa làm (nên nói thẳng nếu thầy hỏi)
+
 - Mã QR chuyển khoản mới là hình minh họa, chưa sinh mã VietQR thật.
-
-Các đường dẫn của những phần này vẫn khai báo trong `routes/web.php` (có ghi chú "chưa cài đặt") để khớp với bản thiết kế.
+- Chưa có tải ảnh sản phẩm.
+- Form thêm, sửa nằm ngay trên trang chứ chưa phải hộp thoại như bản thiết kế Figma.
+- Chưa có kiểm thử tự động.
