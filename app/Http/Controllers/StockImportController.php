@@ -44,7 +44,7 @@ class StockImportController extends Controller
             'items.*.import_price.min' => 'Đơn giá nhập không được âm.',
         ]);
 
-        // Form gửi lên mọi sản phẩm; chỉ giữ lại những dòng có số lượng nhập > 0.
+        // Form gửi lên mọi sản phẩm; chỉ Giữ lại những dòng có số lượng nhập > 0.
         // Khóa của mảng items chính là product_id.
         $items = [];
         foreach ($request->input('items', []) as $productId => $row) {
