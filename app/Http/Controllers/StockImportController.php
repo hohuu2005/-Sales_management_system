@@ -16,7 +16,7 @@ class StockImportController extends Controller
      */
     public function create()
     {
-        $products = Product::with('inventory')
+        $products = Product::query()->with('inventory')
             ->where('is_active', true)
             ->orderBy('sku_code')
             ->get();
