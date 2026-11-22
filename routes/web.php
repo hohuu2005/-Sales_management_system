@@ -31,17 +31,13 @@ Route::middleware(['auth'])->group(function () {
         };
     })->name('dashboard');
 
-    // Mọi vai trò đều được tra cứu sản phẩm.
+    // Mọi vai trò: tra cứu sản phẩm và đổi mật khẩu cá nhân.
     Route::get('/products/search', [ProductController::class, 'search']);
-
-    // (Đã thiết kế, CHƯA cài đặt hàm changePassword trong AuthController.)
     Route::post('/password', [AuthController::class, 'changePassword']);
 
-    // ----- ADMIN -----
+    // ----- ADMIN: danh mục, hàng hóa, người dùng, báo cáo doanh thu -----
     Route::middleware(['role:ADMIN'])->group(function () {
         Route::get('/products', [ProductController::class, 'index']);
-
-        // CÁC ROUTE DƯỚI ĐÂY ĐÃ THIẾT KẾ NHƯNG CHƯA CÀI ĐẶT HÀM TRONG CONTROLLER.
         Route::get('/categories', [CategoryController::class, 'index']);
         Route::post('/categories', [CategoryController::class, 'store']);
         Route::put('/categories/{id}', [CategoryController::class, 'update']);
@@ -54,11 +50,13 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/users', [UserController::class, 'index']);
         Route::post('/users', [UserController::class, 'store']);
         Route::put('/users/{id}', [UserController::class, 'update']);
+        Route::put('/users/{id}/role', [UserController::class, 'updateRole']);
         Route::delete('/users/{id}', [UserController::class, 'destroy']);
 
         Route::get('/reports/revenue', [ReportController::class, 'revenueReport']);
     });
 
+    // ----- ADMIN và THỦ KHO: cảnh báo tồn kho -----
     Route::middleware(['role:ADMIN,STOCKKEEPER'])->group(function () {
         Route::get('/reports/inventory', [ReportController::class, 'inventoryReport']);
     });
@@ -70,8 +68,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/stock-imports', [StockImportController::class, 'importHistory']);
     });
 
-    // ----- BÁN HÀNG: màn hình POS -----
-    Route::middleware(['role:SALES,ADMIN'])->group(function () {
+    // ----- BÁN HÀNG: màn hình POS (theo sơ đồ use case, chỉ Nhân viên bán hàng dùng POS) -----
+    Route::middleware(['role:SALES'])->group(function () {
         Route::get('/pos', [PosOrderController::class, 'posScreen']);
         Route::get('/pos/scan', [PosOrderController::class, 'scanBarcode']);
         Route::post('/pos/checkout', [PosOrderController::class, 'checkout']);
