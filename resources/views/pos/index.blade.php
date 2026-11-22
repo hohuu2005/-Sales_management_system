@@ -42,7 +42,10 @@
                     <button type="button" class="btn btn-green" id="btn-scan">+ Thêm</button>
                 </div>
 
-                <h3 class="mt">Danh sách hàng hóa trong giỏ</h3>
+                <div class="row-between mt">
+                    <h3>Giỏ hàng <span id="cart-count" class="muted">(chưa có sản phẩm)</span></h3>
+                    <button type="button" class="btn btn-outline btn-small" id="btn-clear-cart">Làm mới giỏ hàng</button>
+                </div>
                 <table>
                     <thead>
                         <tr>
@@ -74,6 +77,8 @@
                 <div id="cash-box">
                     <label for="customer-paid">Tiền khách đưa</label>
                     <input class="input input-money" id="customer-paid" type="number" min="0" step="1000" placeholder="0">
+                    {{-- Các nút chọn nhanh số tiền do public/js/pos.js tạo theo tổng tiền --}}
+                    <div class="chips" id="cash-chips"></div>
                     <div class="change-box">
                         <span>Tiền thừa trả khách:</span><b id="change-amount">0 đ</b>
                     </div>
