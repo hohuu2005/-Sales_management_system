@@ -26,6 +26,8 @@
     var qrAmountEl = document.getElementById('qr-amount');
     var checkoutBtn = document.getElementById('btn-checkout');
     var receipt = document.getElementById('receipt');
+    var chipsBox = document.getElementById('cash-chips');
+    var cartCount = document.getElementById('cart-count');
 
     // Mỗi phần tử: { sku_code, name, unit, price, stock, quantity }
     var cart = [];
@@ -86,7 +88,18 @@
             tr.appendChild(cell(item.unit));
             tr.appendChild(cell(String(item.stock), 'num'));
 
+            // Ô số lượng: nút trừ, ô gõ tay, nút cộng
             var qtyCell = document.createElement('td');
+            var qtyWrap = document.createElement('div');
+            qtyWrap.className = 'qty';
+
+            var minusBtn = document.createElement('button');
+            minusBtn.type = 'button';
+            minusBtn.textContent = '−';
+            minusBtn.addEventListener('click', function () {
+                changeQuantity(index, item.quantity - 1);
+            });
+
             var qtyInput = document.createElement('input');
             qtyInput.type = 'number';
             qtyInput.min = '1';
@@ -96,7 +109,18 @@
             qtyInput.addEventListener('change', function () {
                 changeQuantity(index, qtyInput.value);
             });
-            qtyCell.appendChild(qtyInput);
+
+            var plusBtn = document.createElement('button');
+            plusBtn.type = 'button';
+            plusBtn.textContent = '+';
+            plusBtn.addEventListener('click', function () {
+                changeQuantity(index, item.quantity + 1);
+            });
+
+            qtyWrap.appendChild(minusBtn);
+            qtyWrap.appendChild(qtyInput);
+            qtyWrap.appendChild(plusBtn);
+            qtyCell.appendChild(qtyWrap);
             tr.appendChild(qtyCell);
 
             tr.appendChild(cell(formatMoney(item.price), 'num'));
@@ -119,7 +143,47 @@
             cartBody.appendChild(tr);
         });
 
+        var pieces = 0;
+        for (var i = 0; i < cart.length; i++) {
+            pieces += cart[i].quantity;
+        }
+        cartCount.textContent = cart.length === 0 ? '(chưa có sản phẩm)' : '(' + cart.length + ' mặt hàng - ' + pieces + ' sản phẩm)';
+
         renderSummary();
+    }
+
+    // Các nút chọn nhanh số tiền khách đưa: đúng tổng tiền, làm tròn lên 10.000, làm tròn lên 100.000, 500.000, 1.000.000.
+    function renderChips(total) {
+        chipsBox.innerHTML = '';
+        if (total <= 0) {
+            return;
+        }
+
+        var candidates = [
+            total,
+            Math.ceil(total / 10000) * 10000,
+            Math.ceil(total / 100000) * 100000,
+            500000,
+            1000000
+        ];
+        var shown = [];
+        candidates.forEach(function (value) {
+            if (value >= total && shown.indexOf(value) === -1 && shown.length < 4) {
+                shown.push(value);
+            }
+        });
+
+        shown.forEach(function (value) {
+            var chip = document.createElement('button');
+            chip.type = 'button';
+            chip.textContent = Math.round(value).toLocaleString('vi-VN');
+            chip.addEventListener('click', function () {
+                paidInput.value = String(value);
+                clearMessage();
+                renderSummary();
+            });
+            chipsBox.appendChild(chip);
+        });
     }
 
     // Tính lại tổng tiền, tiền thừa, hiện/ẩn khung QR.
@@ -127,6 +191,7 @@
         var total = totalAmount();
         totalEl.textContent = formatMoney(total);
         qrAmountEl.textContent = formatMoney(total);
+        renderChips(total);
 
         if (paymentMethod() === 'VIETQR') {
             cashBox.classList.add('hidden');
@@ -346,6 +411,14 @@
     }
 
     checkoutBtn.addEventListener('click', checkout);
+
+    document.getElementById('btn-clear-cart').addEventListener('click', function () {
+        cart = [];
+        paidInput.value = '';
+        clearMessage();
+        render();
+        skuInput.focus();
+    });
 
     document.getElementById('btn-print').addEventListener('click', function () {
         window.print();
