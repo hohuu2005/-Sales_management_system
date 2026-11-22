@@ -3,11 +3,13 @@
 Đồ án môn Chuyên đề tổng hợp - Nhóm 15, lớp 68PM2, Khoa Công nghệ thông tin, Trường Đại học Xây dựng Hà Nội.
 Giảng viên hướng dẫn: TS Phạm Hữu Tùng.
 
-| Thành viên | Mã SV |
-|---|---|
-| Hồ Chí Hữu | 0014768 |
-| Nguyễn Ngọc Sơn | 0023968 |
-| Đào Văn Minh | 0018368 |
+## Thành viên và phần phụ trách
+
+| Thành viên | Mã SV | Phần phụ trách |
+|---|---|---|
+| Hồ Chí Hữu | 0014768 | Đăng nhập, phân quyền, đổi mật khẩu, quản lý người dùng, định tuyến và giao diện chung |
+| Nguyễn Ngọc Sơn | 0023968 | Nhập kho, quản lý danh mục và hàng hóa |
+| Đào Văn Minh | 0018368 | Bán hàng POS, lịch sử giao dịch, báo cáo doanh thu và tồn kho |
 
 ## Công nghệ
 
@@ -35,29 +37,31 @@ Lưu ý: `migrate:fresh --seed` xóa toàn bộ dữ liệu cũ và tạo lại 
 
 | Tên đăng nhập | Vai trò | Màn hình sau khi đăng nhập |
 |---|---|---|
-| `admin` | ADMIN | Danh sách hàng hóa và tồn kho |
+| `admin` | ADMIN | Hàng hóa và danh mục |
 | `thukho` | STOCKKEEPER | Lập phiếu nhập kho |
 | `banhang` | SALES | Bán hàng POS |
 
-## Tình trạng chức năng
+## Chức năng theo vai trò
 
-| Chức năng | Tình trạng |
+| Vai trò | Chức năng |
 |---|---|
-| Đăng nhập, đăng xuất, phân quyền theo vai trò | Đã xong |
-| Bán hàng POS: quét mã SKU, giỏ hàng, thanh toán, trừ tồn kho | Đã xong (mã QR chuyển khoản mới là hình minh họa) |
-| Lịch sử giao dịch của thu ngân | Đã xong |
-| Lập phiếu nhập kho, cộng tồn kho, lịch sử nhập | Đã xong |
-| Danh sách hàng hóa và tồn kho, tra cứu sản phẩm | Đã xong (chỉ xem) |
-| Thêm, sửa, xóa danh mục, sản phẩm, người dùng | Chưa làm |
-| Báo cáo doanh thu, báo cáo tồn kho | Chưa làm |
-| Đổi mật khẩu | Chưa làm |
+| Mọi vai trò | Đăng nhập, đăng xuất, đổi mật khẩu |
+| ADMIN | Quản lý danh mục, quản lý hàng hóa (thêm, sửa, ngừng bán), quản lý người dùng (thêm, sửa, phân quyền, khóa), báo cáo doanh thu, báo cáo tồn kho |
+| STOCKKEEPER | Lập phiếu nhập kho, lịch sử phiếu nhập, cảnh báo tồn kho |
+| SALES | Bán hàng POS (quét mã, giỏ hàng, thanh toán tiền mặt hoặc chuyển khoản), lịch sử giao dịch, tra cứu sản phẩm |
+
+## Phần chưa làm
+
+- Mã QR chuyển khoản mới là hình minh họa, chưa sinh mã VietQR thật.
+- Chưa có tải ảnh sản phẩm (cột `image_url` để trống).
+- Chưa có kiểm thử tự động.
 
 ## Cấu trúc thư mục chính
 
 ```
 app/Http/Controllers/   Nhận request, kiểm tra dữ liệu, trả View hoặc JSON
 app/Http/Middleware/    CheckRole: phân quyền theo vai trò
-app/Services/           Nghiệp vụ nhiều bước, có transaction (bán hàng, nhập kho)
+app/Services/           Nghiệp vụ nhiều bước, có transaction (bán hàng, nhập kho, tạo sản phẩm)
 app/Models/             8 model tương ứng 8 bảng
 database/migrations/    Định nghĩa các bảng
 database/seeders/       Dữ liệu mẫu
