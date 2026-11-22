@@ -13,15 +13,16 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
-            $table->string('order_number', 50)->unique()->index();
+            $table->string('order_code', 30)->unique();
             $table->foreignId('cashier_id')->constrained('users')->restrictOnDelete();
             $table->decimal('total_amount', 15, 2);
+            $table->decimal('customer_paid', 15, 2);
+            $table->decimal('change_amount', 15, 2)->default(0);
             $table->enum('payment_method', ['CASH', 'VIETQR']);
             $table->enum('status', ['COMPLETED', 'CANCELLED'])->default('COMPLETED');
             $table->string('note', 255)->nullable();
-            $table->timestamp('completed_at')->useCurrent()->index();
-            $table->index(['completed_at', 'status']);
-
+            $table->timestamp('created_at')->useCurrent()->index();
+            $table->index(['created_at', 'status']);
         });
     }
 

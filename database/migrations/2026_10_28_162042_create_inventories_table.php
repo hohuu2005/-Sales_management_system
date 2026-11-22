@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('inventories', function (Blueprint $table) {
             $table->id();
             $table->foreignId('product_id')->unique()->constrained('products')->onDelete('cascade');
-            $table->unsignedBigInteger('current_stock')->default(0);
-            $table->unsignedBigInteger('safety_stock')->default(10);
+            $table->unsignedInteger('current_stock')->default(0);
+            $table->unsignedInteger('safety_stock')->default(10);
             $table->string('shelf_location', 50)->nullable();
 
             $table->timestamp('updated_at')->useCurrent()->useCurrentOnUpdate();

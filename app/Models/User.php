@@ -2,31 +2,66 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
-use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
-#[Fillable(['name', 'email', 'password'])]
-#[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
 
+    protected $table = 'users';
+
+    // Bảng users lưu mật khẩu ở cột password_hash (không phải cột password mặc định của Laravel).
+    protected $authPasswordName = 'password_hash';
+
+    protected $fillable = [
+        'employee_code',
+        'username',
+        'password_hash',
+        'full_name',
+        'email',
+        'phone',
+        'role',
+        'work_shift',
+        'is_active',
+    ];
+
+    protected $hidden = [
+        'password_hash',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
+
     /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
+     * Trả về mật khẩu đã mã hóa để Laravel Auth đối chiếu khi đăng nhập.
      */
-    protected function casts(): array
+    public function getAuthPassword(): string
     {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
+        return (string) $this->password_hash;
+    }
+
+    /**
+     * Kiểm tra người dùng có đúng vai trò hay không (ADMIN / STOCKKEEPER / SALES).
+     * Middleware CheckRole dùng hàm này.
+     */
+    public function hasRole(string $role): bool
+    {
+        return $this->role === $role;
+    }
+
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class, 'cashier_id');
+    }
+
+    public function stockImports(): HasMany
+    {
+        return $this->hasMany(StockImport::class, 'stockkeeper_id');
     }
 }

@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<title>SIMS - 8 Màn Hình Wireframe & Prototype (KiotViet Style)</title>
+<style>
+  * { box-sizing: border-box; font-family: 'Inter', 'Segoe UI', sans-serif; margin: 0; padding: 0; }
+  body { background: #CBD5E1; padding: 40px; display: flex; flex-direction: column; gap: 60px; align-items: flex-start; }
+  .screen { width: 1440px; min-height: 900px; background: #F0F2F5; border: 2px solid #94A3B8; position: relative; overflow: hidden; }
+  .modal-frame { background: #FFFFFF; border-radius: 10px; border: 2px solid #0066CC; box-shadow: 0 10px 30px rgba(0,0,0,0.15); overflow: hidden; }
+  .frame-title { font-size: 22px; font-weight: 800; color: #0F172A; margin-bottom: 12px; background: #FACC15; padding: 6px 16px; border-radius: 6px; display: inline-block; }
+  /* Topbar KiotViet */
+  .topbar { height: 56px; background: #0066CC; color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; }
+  .brand { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 28px; }
+  .nav-links { display: flex; gap: 8px; }
+  .nav-item { padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 600; color: #E0F2FE; background: rgba(255,255,255,0.08); }
+  .nav-item.active { background: #004C99; color: #fff; }
+  .user-badge { font-size: 13px; background: rgba(255,255,255,0.15); padding: 6px 14px; border-radius: 20px; }
+  /* Layout & Cards */
+  .container { padding: 24px; display: flex; gap: 20px; }
+  .card { background: #fff; border-radius: 8px; border: 1px solid #E2E8F0; padding: 20px; }
+  .btn { padding: 10px 18px; border-radius: 6px; font-weight: 600; font-size: 14px; border: none; cursor: pointer; display: inline-block; text-align: center; }
+  .btn-blue { background: #0066CC; color: #fff; }
+  .btn-green { background: #28A745; color: #fff; }
+  .btn-red { background: #DC3545; color: #fff; }
+  .btn-outline { background: #fff; border: 1px solid #CBD5E1; color: #334155; }
+  .input { width: 100%; padding: 10px 12px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 14px; background: #fff; margin-top: 6px; }
+  label { font-size: 13px; font-weight: 600; color: #334155; display: block; margin-top: 12px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 14px; background: #fff; }
+  th { background: #F8FAFC; color: #475569; text-align: left; padding: 12px; border-bottom: 2px solid #E2E8F0; font-weight: 700; }
+  td { padding: 12px; border-bottom: 1px solid #E2E8F0; color: #1E293B; }
+  .badge { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 700; }
+  .badge-green { background: #DCFCE7; color: #166534; }
+  .badge-red { background: #FEE2E2; color: #991B1B; }
+  .badge-blue { background: #DBEAFE; color: #1E40AF; }
+</style>
+</head>
+<body>
+
+  <!-- ================= FRAME 1: 01_Login ================= -->
+  <div>
+    <div class="frame-title">01_Login (Màn hình Đăng nhập - GET /login)</div>
+    <div class="screen" style="display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#0066CC 0%,#E0F2FE 100%);">
+      <div class="card" style="width:440px; padding:36px;">
+        <h2 style="color:#0066CC; text-align:center; font-size:24px;">SIMS - KIOT QUẢN LÝ</h2>
+        <p style="text-align:center; color:#64748B; font-size:13px; margin-top:4px;">Hệ thống Quản lý Bán hàng & Tồn kho (MVC)</p>
+        <label>Tên đăng nhập (username)</label>
+        <input class="input" value="admin / thukho / banhang">
+        <label>Mật khẩu (password)</label>
+        <input class="input" type="password" value="12345678">
+        <div style="display:flex; justify-content:space-between; margin:14px 0; font-size:13px; color:#475569;">
+          <span>☑ Duy trì đăng nhập</span>
+          <span style="color:#0066CC;">Đổi mật khẩu (/password)</span>
+        </div>
+        <div style="display:flex; gap:12px; margin-top:20px;">
+          <button class="btn btn-blue" style="flex:1; padding:14px;">QUẢN LÝ (Admin/Kho)</button>
+          <button class="btn btn-green" style="flex:1; padding:14px;">BÁN HÀNG (POS)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= FRAME 2: 02_POS_Screen ================= -->
+  <div>
+    <div class="frame-title">02_POS_Screen (Màn hình Bán hàng tại quầy - GET /pos)</div>
+    <div class="screen">
+      <div class="topbar">
+        <div class="brand" style="flex:1;">
+          <span>SIMS POS</span>
+          <input class="input" style="width:480px; margin:0;" value="[Barcode/SKU] Quét mã vạch hoặc nhập mã SKU (F3): SP001, SP002...">
+          <button class="btn btn-green">+ Quét mã (/pos/scan)</button>
+        </div>
+        <div class="user-badge">Thu ngân: Đào Văn Minh (BH003 - SALES) | Lịch sử ca (/pos/history) | Đăng xuất</div>
+      </div>
+      <div class="container">
+        <!-- Cột trái 70%: Giỏ hàng -->
+        <div class="card" style="flex:7; min-height:780px;">
+          <h3>Danh sách hàng hóa trong giỏ (Order Details)</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>STT</th><th>Mã SKU</th><th>Tên hàng hóa</th><th>ĐVT</th><th>Số lượng (quantity)</th><th>Đơn giá (unit_price)</th><th>Thành tiền (subtotal)</th><th>Xóa</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>1</td><td><b>SP001</b></td><td>Áo Polo Nam Basic (Size XL, Màu Đen)</td><td>Cái</td>
+                <td><button class="btn btn-outline">-</button> <b>2</b> <button class="btn btn-outline">+</button></td>
+                <td>199,000 đ</td><td><b>398,000 đ</b></td><td><span class="badge badge-red">Xóa</span></td>
+              </tr>
+              <tr>
+                <td>2</td><td><b>SP002</b></td><td>Nước Khoáng Lavie 500ml</td><td>Chai</td>
+                <td><button class="btn btn-outline">-</button> <b>1</b> <button class="btn btn-outline">+</button></td>
+                <td>6,000 đ</td><td><b>6,000 đ</b></td><td><span class="badge badge-red">Xóa</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <!-- Cột phải 30%: Thanh toán -->
+        <div class="card" style="flex:3; display:flex; flex-direction:column; justify-content:space-between;">
+          <div>
+            <h3 style="border-bottom:1px solid #E2E8F0; padding-bottom:12px;">THÔNG TIN HÓA ĐƠN (Orders)</h3>
+            <div style="display:flex; justify-content:space-between; margin-top:16px; font-size:15px;">
+              <span>Mã đơn dự kiến:</span><b>ORD-20261109-001</b>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-top:14px; font-size:18px; color:#0066CC;">
+              <span>Khách cần trả (total_amount):</span><b>404,000 VNĐ</b>
+            </div>
+            <label style="margin-top:20px;">Phương thức thanh toán (payment_method)</label>
+            <div style="display:flex; gap:16px; margin-top:8px; font-size:14px;">
+              <span>🔘 <b>Tiền mặt (CASH)</b></span>
+              <span>⚪ <b>Chuyển khoản (VIETQR)</b></span>
+            </div>
+            <label>Tiền khách đưa (customer_paid)</label>
+            <input class="input" value="500,000" style="font-size:18px; font-weight:700; color:#166534;">
+            <div style="display:flex; justify-content:space-between; margin-top:18px; padding:12px; background:#F8FAFC; border-radius:6px;">
+              <span>Tiền thừa trả khách (change_amount):</span><b style="font-size:18px; color:#DC3545;">96,000 VNĐ</b>
+            </div>
+          </div>
+          <button class="btn btn-green" style="width:100%; padding:20px; font-size:18px;">THANH TOÁN & IN HÓA ĐƠN (F9)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= FRAME 3: 03_Modal_VietQR_Receipt ================= -->
+  <div>
+    <div class="frame-title">03_Modal_VietQR_Receipt (Popup Thanh toán & Hóa đơn - POST /pos/checkout)</div>
+    <div class="modal-frame" style="width:540px; padding:24px;">
+      <h3 style="color:#0066CC; border-bottom:1px solid #E2E8F0; padding-bottom:10px;">XÁC NHẬN THANH TOÁN #ORD-20261109-001</h3>
+      <div style="text-align:center; padding:16px; background:#F8FAFC; margin:14px 0; border-radius:8px; border:1px dashed #0066CC;">
+        <div style="width:160px; height:160px; background:#E2E8F0; margin:0 auto; display:flex; align-items:center; justify-content:center; font-weight:700;">[MÃ VIETQR ĐỘNG]</div>
+        <p style="margin-top:8px; font-weight:700; color:#0066CC;">Số tiền: 404,000 VNĐ</p>
+      </div>
+      <div style="font-size:13px; line-height:1.7; border-top:1px solid #E2E8F0; padding-top:10px;">
+        <p><b>Thu ngân:</b> Đào Văn Minh (BH003) | <b>Giờ tạo:</b> 2026-11-09 21:15</p>
+        <p>1. SP001 - Áo Polo Nam Basic (x2) .................. 398,000 đ</p>
+        <p>2. SP002 - Nước Khoáng Lavie 500ml (x1) ............. 6,000 đ</p>
+        <p><b>Tổng cộng: 404,000 đ</b> | Khách đưa: 500,000 đ | Tiền thừa: 96,000 đ</p>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:18px;">
+        <button class="btn btn-outline">Đóng</button>
+        <button class="btn btn-green">Hoàn tất & In phiếu thu</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= FRAME 4: 04_Product_Category_List ================= -->
+  <div>
+    <div class="frame-title">04_Product_Category_List (Màn hình Quản lý Hàng hóa & Danh mục - GET /products)</div>
+    <div class="screen">
+      <div class="topbar">
+        <div class="brand">
+          <span>SIMS ADMIN</span>
+          <div class="nav-links">
+            <span class="nav-item active">Hàng hóa & Danh mục (/products)</span>
+            <span class="nav-item">Nhập kho (/stock-imports)</span>
+            <span class="nav-item">Nhân sự (/users)</span>
+            <span class="nav-item">Báo cáo (/reports/revenue)</span>
+          </div>
+        </div>
+        <div class="user-badge">Quản trị viên: Hồ Chí Hữu (NV001 - ADMIN)</div>
+      </div>
+      <div class="container">
+        <!-- Sidebar Danh mục -->
+        <div class="card" style="width:280px;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h4>Danh mục (Categories)</h4>
+            <button class="btn btn-blue" style="padding:4px 10px; font-size:12px;">+ Thêm</button>
+          </div>
+          <ul style="list-style:none; margin-top:14px; line-height:2.4; font-size:14px;">
+            <li style="background:#EFF6FF; padding:0 10px; border-radius:6px; font-weight:700; color:#0066CC;">• Tất cả danh mục (3)</li>
+            <li style="padding:0 10px;">• Thời trang (thoi-trang) [Sửa/Xóa]</li>
+            <li style="padding:0 10px;">• Đồ uống (do-uong) [Sửa/Xóa]</li>
+          </ul>
+        </div>
+        <!-- Bảng sản phẩm -->
+        <div class="card" style="flex:1;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <input class="input" style="width:380px; margin:0;" value="Tìm kiếm theo Mã SKU hoặc Tên sản phẩm (/products/search)...">
+            <button class="btn btn-green">+ Thêm mới hàng hóa (Mở Modal)</button>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Mã SKU</th><th>Tên hàng hóa</th><th>Danh mục</th><th>ĐVT</th><th>Giá vốn</th><th>Giá bán</th><th>Tồn kho</th><th>Vị trí kệ</th><th>Thuộc tính JSON</th><th>Thao tác</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>SP001</b></td><td>Áo Polo Nam Basic</td><td>Thời trang</td><td>Cái</td><td>120,000</td><td>199,000</td>
+                <td><span class="badge badge-green">50</span></td><td>Kệ A1 - Tầng 1</td><td>{"size":"XL","color":"Đen"}</td>
+                <td><button class="btn btn-outline">Sửa</button> <button class="btn btn-red">Khóa</button></td>
+              </tr>
+              <tr>
+                <td><b>SP002</b></td><td>Nước Khoáng Lavie 500ml</td><td>Đồ uống</td><td>Chai</td><td>3,500</td><td>6,000</td>
+                <td><span class="badge badge-red">8 (Sắp hết)</span></td><td>Kệ B2 - Tầng 1</td><td>{"exp_date":"2027-05-01"}</td>
+                <td><button class="btn btn-outline">Sửa</button> <button class="btn btn-red">Khóa</button></td>
+              </tr>
+              <tr>
+                <td><b>SP003</b></td><td>Quần Jeans Nam Slimfit</td><td>Thời trang</td><td>Cái</td><td>220,000</td><td>350,000</td>
+                <td><span class="badge badge-green">25</span></td><td>Kệ A2 - Tầng 1</td><td>{"size":"31","color":"Xanh"}</td>
+                <td><button class="btn btn-outline">Sửa</button> <button class="btn btn-red">Khóa</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= FRAME 5: 05_Modal_Add_Product ================= -->
+  <div>
+    <div class="frame-title">05_Modal_Add_Product (Popup Thêm/Sửa hàng hóa - POST /products)</div>
+    <div class="modal-frame" style="width:680px; padding:24px;">
+      <h3 style="color:#0066CC; border-bottom:1px solid #E2E8F0; padding-bottom:10px;">THÊM MỚI HÀNG HÓA & KHỞI TẠO TỒN KHO</h3>
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+        <div><label>Mã hàng hóa (sku_code) *</label><input class="input" value="SP004"></div>
+        <div><label>Tên sản phẩm (name) *</label><input class="input" value="Áo Sơ Mi Trắng Oxford"></div>
+        <div><label>Danh mục (category_id) *</label><input class="input" value="1 - Thời trang"></div>
+        <div><label>Đơn vị tính (unit) *</label><input class="input" value="Cái"></div>
+        <div><label>Giá vốn (cost_price)</label><input class="input" value="150,000"></div>
+        <div><label>Giá bán lẻ (selling_price)</label><input class="input" value="265,000"></div>
+        <div><label>Định mức tồn tối thiểu (safety_stock)</label><input class="input" value="10"></div>
+        <div><label>Vị trí kệ kho (shelf_location)</label><input class="input" value="Kệ A3 - Tầng 2"></div>
+      </div>
+      <div style="margin-top:16px; padding:12px; background:#F8FAFC; border:1px solid #CBD5E1; border-radius:6px;">
+        <b>Thuộc tính động ngành hàng (attributes_json - Kiểu JSON):</b>
+        <div style="display:flex; gap:10px; margin-top:8px;">
+          <input class="input" value="size: L">
+          <input class="input" value="color: Trắng">
+          <input class="input" value="exp_date: N/A">
+        </div>
+      </div>
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:18px;">
+        <button class="btn btn-outline">Hủy bỏ</button>
+        <button class="btn btn-blue">Lưu hàng hóa (POST /products)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= FRAME 6: 06_Stock_Import_Create ================= -->
+  <div>
+    <div class="frame-title">06_Stock_Import_Create (Màn hình Lập phiếu nhập kho - GET /stock-imports/create)</div>
+    <div class="screen">
+      <div class="topbar">
+        <div class="brand">
+          <span>SIMS WAREHOUSE</span>
+          <div class="nav-links">
+            <span class="nav-item active">Lập phiếu nhập kho (/stock-imports/create)</span>
+            <span class="nav-item">Lịch sử nhập kho (/stock-imports)</span>
+            <span class="nav-item">Cảnh báo tồn kho (/reports/inventory)</span>
+          </div>
+        </div>
+        <div class="user-badge">Thủ kho: Nguyễn Ngọc Sơn (TK002 - STOCKKEEPER)</div>
+      </div>
+      <div class="container">
+        <div class="card" style="flex:7;">
+          <div style="display:flex; gap:10px; margin-bottom:12px;">
+            <input class="input" style="margin:0;" value="Nhập mã SKU cần nhập kho: SP002 - Nước Khoáng Lavie 500ml...">
+            <button class="btn btn-blue">+ Thêm vào phiếu</button>
+          </div>
+          <h3>Chi tiết mặt hàng nhập kho (stock_import_details)</h3>
+          <table>
+            <thead>
+              <tr><th>STT</th><th>Mã SKU</th><th>Tên hàng hóa</th><th>ĐVT</th><th>Số lượng nhập (quantity)</th><th>Giá nhập (import_price)</th><th>Thành tiền (subtotal)</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>1</td><td><b>SP002</b></td><td>Nước Khoáng Lavie 500ml</td><td>Chai</td><td><b>100</b></td><td>3,500 đ</td><td><b>350,000 đ</b></td></tr>
+              <tr><td>2</td><td><b>SP001</b></td><td>Áo Polo Nam Basic</td><td>Cái</td><td><b>20</b></td><td>120,000 đ</td><td><b>2,400,000 đ</b></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card" style="flex:3;">
+          <h3>THÔNG TIN PHIẾU NHẬP (stock_imports)</h3>
+          <label>Mã phiếu nhập (import_code)</label><input class="input" value="IMP-20261109-101 (Tự động)" readonly>
+          <label>Người lập phiếu (user_id)</label><input class="input" value="Nguyễn Ngọc Sơn (TK002)" readonly>
+          <label>Nhà cung cấp (supplier_name) *</label><input class="input" value="Công ty TNHH Thực phẩm & May mặc miền Bắc">
+          <label>Ghi chú nhập kho (note)</label><input class="input" value="Nhập bổ sung hàng Lavie dưới định mức safety_stock">
+          <div style="display:flex; justify-content:space-between; margin:20px 0; font-size:18px; color:#0066CC;">
+            <span>Tổng tiền nhập (total_cost):</span><b>2,750,000 VNĐ</b>
+          </div>
+          <button class="btn btn-green" style="width:100%; padding:16px; font-size:16px;">HOÀN THÀNH NHẬP KHO (POST /stock-imports)</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= FRAME 7: 07_User_Management ================= -->
+  <div>
+    <div class="frame-title">07_User_Management (Màn hình Quản lý Nhân sự & Phân quyền - GET /users)</div>
+    <div class="screen">
+      <div class="topbar">
+        <div class="brand">
+          <span>SIMS ADMIN</span>
+          <div class="nav-links">
+            <span class="nav-item">Hàng hóa (/products)</span>
+            <span class="nav-item">Nhập kho (/stock-imports)</span>
+            <span class="nav-item active">Nhân sự & Phân quyền (/users)</span>
+            <span class="nav-item">Báo cáo (/reports/revenue)</span>
+          </div>
+        </div>
+        <div class="user-badge">Quản trị viên: Hồ Chí Hữu (NV001 - ADMIN)</div>
+      </div>
+      <div class="container">
+        <div class="card" style="width:100%;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h3>Danh sách tài khoản nhân viên (Bảng users)</h3>
+            <button class="btn btn-green">+ Thêm nhân viên mới (POST /users)</button>
+          </div>
+          <table>
+            <thead>
+              <tr><th>Mã NV (employee_code)</th><th>Tài khoản (username)</th><th>Họ và tên (full_name)</th><th>Email</th><th>SĐT</th><th>Ca làm (work_shift)</th><th>Vai trò (role)</th><th>Trạng thái</th><th>Thao tác</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><b>NV001</b></td><td>admin</td><td>Hồ Chí Hữu</td><td>huu.admin@sims.vn</td><td>0901000001</td><td>Hành chính</td>
+                <td><span class="badge badge-blue">ADMIN</span></td><td><span class="badge badge-green">Hoạt động (1)</span></td>
+                <td><button class="btn btn-outline">Sửa</button> <button class="btn btn-blue">Đổi Role</button></td>
+              </tr>
+              <tr>
+                <td><b>TK002</b></td><td>thukho</td><td>Nguyễn Ngọc Sơn</td><td>son.stock@sims.vn</td><td>0901000002</td><td>Ca Sáng</td>
+                <td><span class="badge badge-blue">STOCKKEEPER</span></td><td><span class="badge badge-green">Hoạt động (1)</span></td>
+                <td><button class="btn btn-outline">Sửa</button> <button class="btn btn-blue">Đổi Role</button></td>
+              </tr>
+              <tr>
+                <td><b>BH003</b></td><td>banhang</td><td>Đào Văn Minh</td><td>minh.sales@sims.vn</td><td>0901000003</td><td>Ca Chiều</td>
+                <td><span class="badge badge-blue">SALES</span></td><td><span class="badge badge-green">Hoạt động (1)</span></td>
+                <td><button class="btn btn-outline">Sửa</button> <button class="btn btn-red">Khóa (DELETE)</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= FRAME 8: 08_Reports_Dashboard ================= -->
+  <div>
+    <div class="frame-title">08_Reports_Dashboard (Màn hình Báo cáo Doanh thu & Cảnh báo Tồn kho - GET /reports/...)</div>
+    <div class="screen">
+      <div class="topbar">
+        <div class="brand">
+          <span>SIMS ANALYTICS</span>
+          <div class="nav-links">
+            <span class="nav-item">Hàng hóa (/products)</span>
+            <span class="nav-item">Nhập kho (/stock-imports)</span>
+            <span class="nav-item">Nhân sự (/users)</span>
+            <span class="nav-item active">Báo cáo Doanh thu & Tồn kho (/reports)</span>
+          </div>
+        </div>
+        <div class="user-badge">Quản trị viên: Hồ Chí Hữu (NV001 - ADMIN)</div>
+      </div>
+      <div class="container" style="flex-direction:column;">
+        <!-- Bộ lọc ngày + KPI -->
+        <div style="display:flex; gap:20px;">
+          <div class="card" style="flex:1; border-left:5px solid #0066CC;">
+            <p style="color:#64748B;">Tổng doanh thu kỳ (total_revenue)</p>
+            <h2 style="color:#0066CC; margin-top:6px;">18,450,000 VNĐ</h2>
+          </div>
+          <div class="card" style="flex:1; border-left:5px solid #28A745;">
+            <p style="color:#64748B;">Tổng số đơn hoàn tất (total_orders)</p>
+            <h2 style="color:#28A745; margin-top:6px;">42 Đơn hàng</h2>
+          </div>
+          <div class="card" style="flex:1; border-left:5px solid #DC3545;">
+            <p style="color:#64748B;">Mặt hàng chạm ngưỡng cảnh báo (current_stock <= safety_stock)</p>
+            <h2 style="color:#DC3545; margin-top:6px;">01 Sản phẩm (Cần nhập gấp)</h2>
+          </div>
+        </div>
+        <!-- Biểu đồ & Bảng cảnh báo -->
+        <div style="display:flex; gap:20px;">
+          <div class="card" style="flex:5;">
+            <h3>Biểu đồ Doanh thu theo ngày (GET /reports/revenue)</h3>
+            <div style="display:flex; align-items:flex-end; gap:24px; height:260px; padding:24px; border-bottom:2px solid #CBD5E1; margin-top:20px;">
+              <div style="flex:1; background:#0066CC; height:45%; border-radius:6px 6px 0 0; text-align:center; color:#fff; padding-top:8px;">05/11</div>
+              <div style="flex:1; background:#0066CC; height:65%; border-radius:6px 6px 0 0; text-align:center; color:#fff; padding-top:8px;">06/11</div>
+              <div style="flex:1; background:#0066CC; height:55%; border-radius:6px 6px 0 0; text-align:center; color:#fff; padding-top:8px;">07/11</div>
+              <div style="flex:1; background:#0066CC; height:85%; border-radius:6px 6px 0 0; text-align:center; color:#fff; padding-top:8px;">08/11</div>
+              <div style="flex:1; background:#28A745; height:100%; border-radius:6px 6px 0 0; text-align:center; color:#fff; padding-top:8px;">09/11</div>
+            </div>
+          </div>
+          <div class="card" style="flex:5;">
+            <h3 style="color:#DC3545;">Bảng Cảnh báo Tồn kho (GET /reports/inventory)</h3>
+            <table>
+              <thead>
+                <tr><th>Mã SKU</th><th>Tên sản phẩm</th><th>Tồn hiện tại</th><th>Định mức (safety_stock)</th><th>Vị trí kệ</th><th>Trạng thái</th></tr>
+              </thead>
+              <tbody>
+                <tr style="background:#FEF2F2;">
+                  <td><b>SP002</b></td><td>Nước Khoáng Lavie 500ml</td><td><b style="color:#DC3545;">8 Chai</b></td><td>10 Chai</td><td>Kệ B2 - Tầng 1</td>
+                  <td><span class="badge badge-red">Sắp hết hàng!</span></td>
+                </tr>
+                <tr>
+                  <td><b>SP003</b></td><td>Quần Jeans Nam Slimfit</td><td>25 Cái</td><td>10 Cái</td><td>Kệ A2 - Tầng 1</td>
+                  <td><span class="badge badge-green">An toàn</span></td>
+                </tr>
+                <tr>
+                  <td><b>SP001</b></td><td>Áo Polo Nam Basic</td><td>50 Cái</td><td>10 Cái</td><td>Kệ A1 - Tầng 1</td>
+                  <td><span class="badge badge-green">An toàn</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

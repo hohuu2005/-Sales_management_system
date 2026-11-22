@@ -1,0 +1,101 @@
+/* Giao diện SIMS - lấy màu sắc, kiểu nút, bảng, thẻ từ wireframe của nhóm (public/wireframe-all.html) */
+
+* { box-sizing: border-box; font-family: 'Inter', 'Segoe UI', Arial, sans-serif; margin: 0; padding: 0; }
+body { background: #F0F2F5; color: #1E293B; min-height: 100vh; }
+a { color: #0066CC; text-decoration: none; }
+h2 { font-size: 20px; }
+h3 { font-size: 16px; }
+
+/* Thanh trên cùng */
+.topbar { min-height: 56px; background: #0066CC; color: #fff; display: flex; align-items: center; justify-content: space-between; padding: 8px 24px; gap: 16px; flex-wrap: wrap; }
+.brand { font-size: 18px; font-weight: 700; display: flex; align-items: center; gap: 28px; }
+.nav-links { display: flex; gap: 8px; flex-wrap: wrap; }
+.nav-item { padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 600; color: #E0F2FE; background: rgba(255,255,255,0.08); }
+.nav-item:hover, .nav-item.active { background: #004C99; color: #fff; }
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+.user-badge { font-size: 13px; background: rgba(255,255,255,0.15); padding: 6px 14px; border-radius: 20px; }
+.btn-logout { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.4); padding: 6px 14px; border-radius: 20px; font-size: 13px; cursor: pointer; }
+
+/* Bố cục & thẻ */
+.page { padding: 24px; }
+.container { display: flex; gap: 20px; align-items: flex-start; }
+.col-main { flex: 7; min-width: 0; }
+.col-side { flex: 3; min-width: 280px; }
+.card { background: #fff; border-radius: 8px; border: 1px solid #E2E8F0; padding: 20px; }
+.card + .card { margin-top: 20px; }
+.card-title { border-bottom: 1px solid #E2E8F0; padding-bottom: 12px; margin-bottom: 4px; }
+.row-between { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.mt { margin-top: 16px; }
+.muted { color: #64748B; font-size: 13px; }
+.text-right { text-align: right; }
+
+/* Nút & ô nhập */
+.btn { padding: 10px 18px; border-radius: 6px; font-weight: 600; font-size: 14px; border: none; cursor: pointer; display: inline-block; text-align: center; white-space: nowrap; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-blue { background: #0066CC; color: #fff; }
+.btn-green { background: #28A745; color: #fff; }
+.btn-red { background: #DC3545; color: #fff; }
+.btn-outline { background: #fff; border: 1px solid #CBD5E1; color: #334155; }
+.btn-small { padding: 4px 10px; font-size: 13px; }
+.btn-big { width: 100%; padding: 18px; font-size: 17px; margin-top: 18px; }
+.input { width: 100%; padding: 10px 12px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 14px; background: #fff; margin-top: 6px; }
+.input:focus { outline: 2px solid #93C5FD; border-color: #0066CC; }
+.input-qty { width: 90px; margin-top: 0; text-align: right; }
+.input-money { font-size: 18px; font-weight: 700; color: #166534; }
+label { font-size: 13px; font-weight: 600; color: #334155; display: block; margin-top: 12px; }
+.radio-row { display: flex; gap: 16px; margin-top: 8px; font-size: 14px; }
+.radio-row label { display: inline-flex; align-items: center; gap: 6px; margin-top: 0; font-size: 14px; cursor: pointer; }
+
+/* Bảng */
+table { width: 100%; border-collapse: collapse; margin-top: 14px; font-size: 14px; background: #fff; }
+th { background: #F8FAFC; color: #475569; text-align: left; padding: 12px; border-bottom: 2px solid #E2E8F0; font-weight: 700; }
+td { padding: 12px; border-bottom: 1px solid #E2E8F0; color: #1E293B; vertical-align: middle; }
+td.num, th.num { text-align: right; }
+.empty-row td { text-align: center; color: #64748B; padding: 28px; }
+
+/* Nhãn trạng thái */
+.badge { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+.badge-green { background: #DCFCE7; color: #166534; }
+.badge-red { background: #FEE2E2; color: #991B1B; }
+.badge-blue { background: #DBEAFE; color: #1E40AF; }
+
+/* Thông báo */
+.alert { padding: 12px 16px; border-radius: 6px; font-size: 14px; margin-bottom: 16px; }
+.alert-success { background: #DCFCE7; color: #166534; border: 1px solid #86EFAC; }
+.alert-error { background: #FEE2E2; color: #991B1B; border: 1px solid #FCA5A5; }
+.alert ul { margin-left: 18px; }
+.hidden { display: none !important; }
+
+/* Trang đăng nhập */
+.login-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #0066CC 0%, #E0F2FE 100%); padding: 24px; }
+.login-card { width: 440px; max-width: 100%; padding: 36px; }
+.login-card h2 { color: #0066CC; text-align: center; font-size: 24px; }
+.login-card .sub { text-align: center; color: #64748B; font-size: 13px; margin-top: 4px; }
+
+/* Màn hình POS */
+.pos-scan { display: flex; gap: 10px; }
+.pos-scan .input { margin-top: 0; font-size: 16px; }
+.summary-line { display: flex; justify-content: space-between; margin-top: 14px; font-size: 15px; }
+.summary-total { font-size: 18px; color: #0066CC; }
+.change-box { display: flex; justify-content: space-between; margin-top: 18px; padding: 12px; background: #F8FAFC; border-radius: 6px; }
+.change-box b { font-size: 18px; color: #DC3545; }
+.qr-box { margin-top: 14px; padding: 18px; border: 2px dashed #0066CC; border-radius: 8px; text-align: center; background: #F8FAFC; font-size: 14px; }
+.qr-box .qr-placeholder { width: 140px; height: 140px; margin: 0 auto 10px; background: #CBD5E1; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 12px; color: #334155; }
+
+/* Hóa đơn sau khi thanh toán */
+.receipt { border: 2px solid #0066CC; }
+.receipt h3 { color: #0066CC; }
+.receipt-lines { margin-top: 10px; font-size: 14px; line-height: 1.7; }
+
+/* Khi in hóa đơn: chỉ in phần hóa đơn */
+@media print {
+    .topbar, .no-print { display: none !important; }
+    body { background: #fff; }
+    .page { padding: 0; }
+    .receipt { border: none; }
+}
+
+@media (max-width: 900px) {
+    .container { flex-direction: column; }
+    .col-side { width: 100%; }
+}

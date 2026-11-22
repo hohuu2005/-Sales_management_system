@@ -1,58 +1,67 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# SIMS - Hệ thống Quản lý Bán hàng và Tồn kho
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Đồ án môn Chuyên đề tổng hợp - Nhóm 15, lớp 68PM2, Khoa Công nghệ thông tin, Trường Đại học Xây dựng Hà Nội.
+Giảng viên hướng dẫn: TS Phạm Hữu Tùng.
 
-## About Laravel
+| Thành viên | Mã SV |
+|---|---|
+| Hồ Chí Hữu | 0014768 |
+| Nguyễn Ngọc Sơn | 0023968 |
+| Đào Văn Minh | 0018368 |
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Công nghệ
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- PHP 8.4 trở lên, Laravel 13 (mô hình MVC, thêm tầng Service cho nghiệp vụ ghi nhiều bảng)
+- MySQL (InnoDB)
+- Giao diện: Blade, CSS tự viết (`public/css/sims.css`), JavaScript thuần cho màn hình POS (`public/js/pos.js`)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Cài đặt và chạy
 
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+1. Bật MySQL (XAMPP), tạo cơ sở dữ liệu tên `sims_db`.
+2. Sao chép `.env.example` thành `.env`, sửa các dòng `DB_...` cho đúng máy, rồi chạy:
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+composer install
+php artisan key:generate
+php artisan migrate:fresh --seed
+php artisan serve
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+3. Mở trình duyệt: http://localhost:8000
 
-## Contributing
+Lưu ý: `migrate:fresh --seed` xóa toàn bộ dữ liệu cũ và tạo lại dữ liệu mẫu.
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## Tài khoản mẫu (mật khẩu đều là `12345678`)
 
-## Code of Conduct
+| Tên đăng nhập | Vai trò | Màn hình sau khi đăng nhập |
+|---|---|---|
+| `admin` | ADMIN | Danh sách hàng hóa và tồn kho |
+| `thukho` | STOCKKEEPER | Lập phiếu nhập kho |
+| `banhang` | SALES | Bán hàng POS |
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## Tình trạng chức năng
 
-## Security Vulnerabilities
+| Chức năng | Tình trạng |
+|---|---|
+| Đăng nhập, đăng xuất, phân quyền theo vai trò | Đã xong |
+| Bán hàng POS: quét mã SKU, giỏ hàng, thanh toán, trừ tồn kho | Đã xong (mã QR chuyển khoản mới là hình minh họa) |
+| Lịch sử giao dịch của thu ngân | Đã xong |
+| Lập phiếu nhập kho, cộng tồn kho, lịch sử nhập | Đã xong |
+| Danh sách hàng hóa và tồn kho, tra cứu sản phẩm | Đã xong (chỉ xem) |
+| Thêm, sửa, xóa danh mục, sản phẩm, người dùng | Chưa làm |
+| Báo cáo doanh thu, báo cáo tồn kho | Chưa làm |
+| Đổi mật khẩu | Chưa làm |
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Cấu trúc thư mục chính
 
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```
+app/Http/Controllers/   Nhận request, kiểm tra dữ liệu, trả View hoặc JSON
+app/Http/Middleware/    CheckRole: phân quyền theo vai trò
+app/Services/           Nghiệp vụ nhiều bước, có transaction (bán hàng, nhập kho)
+app/Models/             8 model tương ứng 8 bảng
+database/migrations/    Định nghĩa các bảng
+database/seeders/       Dữ liệu mẫu
+resources/views/        Giao diện Blade
+routes/web.php          Toàn bộ đường dẫn
+docs/GIAI_THICH_CODE.md Giải thích từng file và từng luồng xử lý
+```

@@ -2,9 +2,104 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Order;
+use App\Models\Product;
+use App\Services\PosOrderService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Throwable;
 
 class PosOrderController extends Controller
 {
-    //
+    /**
+     * Hiển thị màn hình bán hàng POS.
+     */
+    public function posScreen()
+    {
+        return view('pos.index');
+    }
+
+    /**
+     * Nhận mã SKU từ máy quét (AJAX), trả JSON gồm tên, giá, tồn kho.
+     */
+    public function scanBarcode(Request $request)
+    {
+        $sku = trim((string) $request->query('sku_code', ''));
+
+        if ($sku === '') {
+            return response()->json(['message' => 'Vui lòng nhập mã SKU.'], 422);
+        }
+
+        $product = Product::findBySku($sku);
+
+        if (! $product || ! $product->is_active) {
+            return response()->json(['message' => "Không tìm thấy sản phẩm có mã {$sku}."], 404);
+        }
+
+        $inventory = $product->inventory;
+
+        return response()->json([
+            'sku_code' => $product->sku_code,
+            'name' => $product->name,
+            'unit' => $product->unit,
+            'selling_price' => (float) $product->selling_price,
+            'current_stock' => $inventory ? (int) $inventory->current_stock : 0,
+        ]);
+    }
+
+    /**
+     * Kiểm tra dữ liệu đầu vào, gọi PosOrderService để thanh toán, trả JSON kết quả.
+     */
+    public function checkout(Request $request, PosOrderService $service)
+    {
+        $data = $request->validate([
+            'payment_method' => ['required', 'in:CASH,VIETQR'],
+            'customer_paid' => ['nullable', 'numeric', 'min:0'],
+            'items' => ['required', 'array', 'min:1'],
+            'items.*.sku_code' => ['required', 'string', 'max:50'],
+            'items.*.quantity' => ['required', 'integer', 'min:1'],
+        ], [
+            'items.required' => 'Giỏ hàng đang trống.',
+            'payment_method.in' => 'Phương thức thanh toán không hợp lệ.',
+        ]);
+
+        try {
+            $order = $service->checkout(
+                Auth::id(),
+                $data['payment_method'],
+                (float) ($data['customer_paid'] ?? 0),
+                $data['items'],
+            );
+        } catch (Throwable $e) {
+            // Service đã rollBack. Trả lỗi để màn hình POS hiển thị và giữ nguyên giỏ hàng.
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
+
+        return response()->json([
+            'message' => 'Thanh toán thành công.',
+            'order' => [
+                'order_code' => $order->order_code,
+                'total_amount' => (float) $order->total_amount,
+                'customer_paid' => (float) $order->customer_paid,
+                'change_amount' => (float) $order->change_amount,
+                'payment_method' => $order->payment_method,
+                'created_at' => $order->created_at ? $order->created_at->format('d/m/Y H:i') : now()->format('d/m/Y H:i'),
+                'cashier' => Auth::user()->full_name,
+            ],
+        ]);
+    }
+
+    /**
+     * Lịch sử hóa đơn của thu ngân đang đăng nhập.
+     */
+    public function myHistory()
+    {
+        $orders = Order::with('details.product')
+            ->where('cashier_id', Auth::id())
+            ->orderByDesc('id')
+            ->limit(50)
+            ->get();
+
+        return view('pos.history', ['orders' => $orders]);
+    }
 }
