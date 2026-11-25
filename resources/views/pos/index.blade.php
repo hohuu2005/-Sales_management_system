@@ -85,7 +85,7 @@
                 </div>
 
                 <div id="qr-box" class="qr-box hidden">
-                    <div class="qr-placeholder">Mã QR (minh họa)</div>
+                    <div class="qr-placeholder">MÃ QR (minh họa)</div>
                     <div>Số tiền chuyển khoản: <b id="qr-amount">0 đ</b></div>
                     <div class="muted">Kiểm tra ứng dụng ngân hàng đã nhận tiền rồi mới bấm Xác nhận.</div>
                 </div>
