@@ -72,6 +72,7 @@ Route::middleware(['auth'])->group(function () {
     Route::middleware(['role:SALES'])->group(function () {
         Route::get('/pos', [PosOrderController::class, 'posScreen']);
         Route::get('/pos/scan', [PosOrderController::class, 'scanBarcode'])->middleware('throttle:120,1');
+        Route::get('/pos/search', [PosOrderController::class, 'timSanPham'])->middleware('throttle:120,1');
         Route::post('/pos/checkout', [PosOrderController::class, 'checkout'])->middleware('throttle:60,1');
         Route::get('/pos/history', [PosOrderController::class, 'myHistory']);
     });

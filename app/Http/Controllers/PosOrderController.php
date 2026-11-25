@@ -114,6 +114,45 @@ class PosOrderController extends Controller
     }
 
     /**
+     * Tìm sản phẩm POS theo mã SKU hoặc tên.
+     */
+    public function timSanPham(Request $request)
+    {
+        $q = trim((string) $request->query('q', ''));
+
+        if (mb_strlen($q) < 2 || mb_strlen($q) > 50) {
+            return response()->json(['data' => []]);
+        }
+
+        $escaped = str_replace(['!', '\\', '%', '_'], ['!!', '!!', '!%', '!_'], $q);
+        $lower = mb_strtolower($escaped, 'UTF-8');
+        $pattern = '%' . $lower . '%';
+
+        $products = Product::with('inventory')
+            ->where('is_active', true)
+            ->where(function ($query) use ($pattern) {
+                $query->whereRaw("LOWER(sku_code) LIKE ? ESCAPE '!'", [$pattern])
+                    ->orWhereRaw("LOWER(name) LIKE ? ESCAPE '!'", [$pattern]);
+            })
+            ->orderByRaw("CASE WHEN LOWER(sku_code) = ? THEN 0 WHEN LOWER(sku_code) LIKE ? THEN 1 ELSE 2 END", [mb_strtolower(trim($q), 'UTF-8'), mb_strtolower(trim($q), 'UTF-8') . '%'])
+            ->orderBy('name')
+            ->limit(10)
+            ->get();
+
+        $data = $products->map(function (Product $product) {
+            return [
+                'sku_code' => $product->sku_code,
+                'name' => $product->name,
+                'unit' => $product->unit,
+                'selling_price' => (float) $product->selling_price,
+                'current_stock' => $product->inventory ? (int) $product->inventory->current_stock : 0,
+            ];
+        })->values();
+
+        return response()->json(['data' => $data]);
+    }
+
+    /**
      * Lịch sử hóa đơn của thu ngân đang đăng nhập.
      */
     public function myHistory()

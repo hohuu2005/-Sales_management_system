@@ -150,7 +150,15 @@ tr.row-off td { color: #94A3B8; }
 .tabs a { padding: 8px 16px; border-radius: 6px; border: 1px solid #CBD5E1; font-size: 14px; font-weight: 600; color: #334155; background: #fff; }
 .tabs a.active { background: #0066CC; border-color: #0066CC; color: #fff; }
 
-/* POS: nút cộng trừ và nút chọn nhanh số tiền */
+/* POS: ô gợi ý sản phẩm, nút cộng trừ và nút chọn nhanh số tiền */
+.sku-search-wrap { position: relative; flex: 1; }
+.sku-suggestions { position: absolute; left: 0; right: 0; top: 46px; z-index: 40; background: #fff; border: 1px solid #CBD5E1; border-radius: 6px; box-shadow: 0 10px 24px rgba(15,23,42,0.18); max-height: 320px; overflow-y: auto; }
+.sku-suggestion { padding: 10px 12px; border-bottom: 1px solid #E2E8F0; cursor: pointer; font-size: 13px; }
+.sku-suggestion:last-child { border-bottom: none; }
+.sku-suggestion:hover, .sku-suggestion.active { background: #EFF6FF; }
+.sku-suggestion.disabled { opacity: 0.55; cursor: not-allowed; background: #F8FAFC; }
+.sku-suggestion-top { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 3px; }
+.sku-suggestion-empty { padding: 12px; color: #64748B; font-size: 13px; text-align: center; }
 .qty { display: flex; align-items: center; gap: 6px; }
 .qty button { width: 30px; height: 34px; border: 1px solid #CBD5E1; border-radius: 6px; background: #F8FAFC; font-weight: 700; font-size: 16px; color: #475569; cursor: pointer; }
 .qty .input-qty { width: 64px; text-align: center; }

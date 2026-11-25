@@ -6,6 +6,7 @@
     {{-- Hai đường dẫn AJAX được truyền cho file public/js/pos.js qua thuộc tính data-* --}}
     <div id="pos-app"
          data-scan-url="{{ url('/pos/scan') }}"
+         data-search-url="{{ url('/pos/search') }}"
          data-checkout-url="{{ url('/pos/checkout') }}">
 
         <div id="pos-message" class="alert alert-error hidden no-print"></div>
@@ -37,8 +38,11 @@
             {{-- Cột trái: quét mã và giỏ hàng --}}
             <div class="card col-main">
                 <div class="pos-scan">
-                    <input class="input" id="sku-input" type="text" autocomplete="off" autofocus
-                           placeholder="Quét mã vạch hoặc nhập mã SKU rồi nhấn Enter (ví dụ: SP001)">
+                    <div class="sku-search-wrap">
+                        <input class="input" id="sku-input" type="text" autocomplete="off" autofocus
+                               placeholder="Quét mã vạch hoặc nhập mã/tên hàng hóa (ví dụ: SP001)">
+                        <div id="sku-suggestions" class="sku-suggestions hidden" role="listbox"></div>
+                    </div>
                     <button type="button" class="btn btn-green" id="btn-scan">+ Thêm</button>
                 </div>
 

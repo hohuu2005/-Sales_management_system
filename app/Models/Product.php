@@ -25,7 +25,7 @@ class Product extends Model
 
     public static function findBySku(string $sku_code): ?self
     {
-        return self::where('sku_code', $sku_code)->first();
+        return self::whereRaw('LOWER(sku_code) = LOWER(?)', [trim($sku_code)])->first();
     }
 
     public function inventory(): HasOne
