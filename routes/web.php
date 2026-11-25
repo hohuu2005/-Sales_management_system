@@ -75,5 +75,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/pos/search', [PosOrderController::class, 'timSanPham'])->middleware('throttle:120,1');
         Route::post('/pos/checkout', [PosOrderController::class, 'checkout'])->middleware('throttle:60,1');
         Route::get('/pos/history', [PosOrderController::class, 'myHistory']);
+        Route::get('/pos/history/{order}', [PosOrderController::class, 'chiTietHoaDon'])->whereNumber('order');
     });
 });

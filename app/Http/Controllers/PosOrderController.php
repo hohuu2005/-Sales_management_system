@@ -14,6 +14,7 @@ use App\Models\Product;
 use App\Services\PosOrderService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 use Throwable;
 
 class PosOrderController extends Controller
@@ -155,14 +156,70 @@ class PosOrderController extends Controller
     /**
      * Lịch sử hóa đơn của thu ngân đang đăng nhập.
      */
-    public function myHistory()
+    public function myHistory(Request $request)
     {
-        $orders = Order::with('details.product')
-            ->where('cashier_id', Auth::id())
-            ->orderByDesc('id')
-            ->limit(50)
-            ->get();
+        $data = $request->validate([
+            'start_date' => ['nullable', 'date_format:Y-m-d'],
+            'end_date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:start_date'],
+        ], [
+            'start_date.date_format' => 'Ngày bắt đầu phải đúng định dạng YYYY-MM-DD.',
+            'end_date.date_format' => 'Ngày kết thúc phải đúng định dạng YYYY-MM-DD.',
+            'end_date.after_or_equal' => 'Ngày kết thúc không được trước ngày bắt đầu.',
+        ]);
 
-        return view('pos.history', ['orders' => $orders]);
+        $startDate = ! empty($data['start_date']) ? Carbon::createFromFormat('Y-m-d', $data['start_date'])->startOfDay() : null;
+        $endDate = ! empty($data['end_date']) ? Carbon::createFromFormat('Y-m-d', $data['end_date'])->endOfDay() : null;
+
+        if ($startDate && $endDate && $startDate->diffInDays($endDate) > 366) {
+            return back()->withErrors(['end_date' => 'Khoảng lọc tối đa 366 ngày.'])->withInput();
+        }
+
+        $baseQuery = Order::with('details.product')->where('cashier_id', Auth::id());
+
+        if ($startDate) {
+            $baseQuery->where('created_at', '>=', $startDate);
+        }
+        if ($endDate) {
+            $baseQuery->where('created_at', '<=', $endDate);
+        }
+
+        $summary = (clone $baseQuery)
+            ->where('status', 'COMPLETED')
+            ->selectRaw('COUNT(*) AS order_count, COALESCE(SUM(total_amount), 0) AS total_amount')
+            ->first();
+
+        $orders = (clone $baseQuery)
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->simplePaginate(20)
+            ->withQueryString();
+
+        return view('pos.history', [
+            'orders' => $orders,
+            'start_date' => $data['start_date'] ?? '',
+            'end_date' => $data['end_date'] ?? '',
+            'total_orders' => (int) ($summary->order_count ?? 0),
+            'total_completed_amount' => (float) ($summary->total_amount ?? 0),
+        ]);
+    }
+
+    /**
+     * Xem chi tiết một hóa đơn của thu ngân đang đăng nhập để xem hoặc in lại.
+     */
+    public function chiTietHoaDon(Request $request, int $order)
+    {
+        $orderModel = Order::with(['cashier', 'details.product'])
+            ->where('cashier_id', Auth::id())
+            ->find($order);
+
+        if (! $orderModel) {
+            abort(404);
+        }
+
+        return view('pos.chi-tiet-hoa-don', [
+            'order' => $orderModel,
+            'start_date' => $request->query('start_date', ''),
+            'end_date' => $request->query('end_date', ''),
+        ]);
     }
 }

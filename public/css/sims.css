@@ -150,6 +150,13 @@ tr.row-off td { color: #94A3B8; }
 .tabs a { padding: 8px 16px; border-radius: 6px; border: 1px solid #CBD5E1; font-size: 14px; font-weight: 600; color: #334155; background: #fff; }
 .tabs a.active { background: #0066CC; border-color: #0066CC; color: #fff; }
 
+/* Lịch sử POS và phân trang đơn giản */
+.history-filter { display: flex; align-items: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+.history-filter .input { width: 180px; margin-top: 0; }
+.history-summary { margin-bottom: 4px; }
+.history-pagination { display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 16px; }
+.history-pagination span { color: #64748B; font-size: 13px; }
+
 /* POS: ô gợi ý sản phẩm, nút cộng trừ và nút chọn nhanh số tiền */
 .sku-search-wrap { position: relative; flex: 1; }
 .sku-suggestions { position: absolute; left: 0; right: 0; top: 46px; z-index: 40; background: #fff; border: 1px solid #CBD5E1; border-radius: 6px; box-shadow: 0 10px 24px rgba(15,23,42,0.18); max-height: 320px; overflow-y: auto; }
