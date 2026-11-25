@@ -1,0 +1,39 @@
+# Bảng tra cứu lỗi POS
+
+**Mục đích tài liệu**: Giúp tìm nhanh thông báo, mã HTTP, nguyên nhân và vị trí code.
+
+**Ai nên đọc**: Người phát triển, người kiểm thử và người hỗ trợ thu ngân.
+
+**Cập nhật lần cuối**: 25/11/2026.
+
+**File liên quan**: `PosOrderController.php`, `PosOrderService.php`, `Inventory.php`, `public/js/pos.js`.
+
+| Thông báo hiển thị | Mã HTTP | Nguyên nhân | Nơi phát sinh | Cách xử lý |
+|---|---|---|---|---|
+| `Vui lòng nhập mã SKU.` | 422 | SKU trong request quét rỗng | `PosOrderController::scanBarcode` | Nhập hoặc quét lại mã |
+| `Không tìm thấy sản phẩm có mã <sku>.` | 404 | Không có SKU hoặc sản phẩm không còn đang bán | `PosOrderController::scanBarcode` | Kiểm tra SKU hoặc trạng thái sản phẩm |
+| `Giỏ hàng đang trống.` | 422 | `items` rỗng hoặc validation mảng không đạt | `PosOrderController::checkout` | Thêm ít nhất một sản phẩm |
+| `Phương thức thanh toán không hợp lệ.` | 422 | payment_method khác CASH/VIETQR | `PosOrderController::checkout` | Chọn CASH hoặc VIETQR |
+| `Không tìm thấy sản phẩm có mã <sku>.` | 422 | SKU trong checkout không tồn tại | `PosOrderService::checkout` ném `LoiBanHangException` | Kiểm tra lại giỏ hoặc quét SKU hợp lệ |
+| `Sản phẩm <tên> đã ngừng bán.` | 422 | Product `is_active=false` | `PosOrderService::checkout` | Thay sản phẩm khác |
+| `Sản phẩm <tên> không đủ số lượng trong kho (còn <n>).` | 422 | Quantity yêu cầu vượt tồn hiện tại | `PosOrderService::checkout` | Giảm số lượng hoặc nhập kho |
+| `Sản phẩm không đủ tồn kho!` | 422 | `deductStock` phát hiện tồn không đủ khi trừ | `Inventory::deductStock` ném `LoiBanHangException` | Kiểm tra lại tồn trước thanh toán |
+| `Tiền khách đưa chưa đủ.` | 422 | customer_paid nhỏ hơn tổng tiền mặt | `PosOrderService::checkout` | Nhận thêm tiền |
+| `Không tạo được mã hóa đơn, vui lòng thử lại.` | 422 | Mã ngẫu nhiên trùng 5 lần liên tiếp | `PosOrderService::taoMaHoaDonKhongTrung` | Bấm thanh toán lại |
+| `Lỗi hệ thống, vui lòng thử lại sau.` | 500 | Exception ngoài lỗi nghiệp vụ, ví dụ database trigger hoặc lỗi lưu chi tiết | `PosOrderController::catch (Throwable)` | Thử lại; kiểm tra log server |
+| `Giỏ hàng đang trống.` | Giao diện JS | Nút thanh toán khi cart trống | `pos.js::checkout` | Quét ít nhất một sản phẩm |
+| `Tiền khách đưa chưa đủ.` | Giao diện JS | Tiền nhập ít hơn tổng hiển thị | `pos.js::checkout` | Nhập đủ tiền |
+| `Số lượng phải là số nguyên từ 1 trở lên.` | Giao diện JS | Ô số lượng rỗng, âm, thập phân hoặc không phải số | `pos.js::changeQuantity` | Nhập số nguyên dương |
+| `Sản phẩm không đủ số lượng trong kho, không thể cập nhật số lượng. Tồn kho hiện tại: <n>.` | Giao diện JS | Số lượng nhập tay lớn hơn tồn | `pos.js::changeQuantity` | Giảm số lượng |
+| `Sản phẩm không đủ số lượng trong kho, không thể thêm vào giỏ. Tồn kho hiện tại: <n>.` | Giao diện JS | Quét hoặc cộng thêm vượt tồn | `pos.js::addBySku` | Giảm số lượng hoặc nhập kho |
+| `Không tìm thấy sản phẩm.` | Giao diện JS | Response quét không OK nhưng không có message | `pos.js::addBySku` | Kiểm tra SKU và server |
+| `Thanh toán không thành công.` | Giao diện JS | Response checkout không OK nhưng không có message | `pos.js::checkout` | Đọc thông báo server nếu có; kiểm tra log |
+| `Không kết nối được máy chủ.` | Giao diện JS | fetch bị lỗi mạng hoặc không bắt được response | `pos.js::addBySku`, `pos.js::checkout` | Kiểm tra kết nối và Laravel server |
+| `Lỗi máy chủ (mã <status>).` | Giao diện JS | Response không phải JSON hoặc lỗi đọc JSON | `pos.js::readJson` | Kiểm tra mã HTTP và log server |
+
+## Quy tắc chọn mã HTTP
+
+- 422 dành cho lỗi nghiệp vụ mà thu ngân có thể sửa.
+- 500 dành cho lỗi hệ thống bất ngờ.
+- 403 dành cho tài khoản không có role SALES.
+- 404 dành cho SKU không tìm thấy ở luồng quét.
