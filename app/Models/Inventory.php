@@ -1,8 +1,14 @@
 <?php
 
+/*
+ * Model quản lý tồn kho hiện tại, tồn tối thiểu và vị trí kệ của từng sản phẩm.
+ * PosOrderService khóa Inventory để trừ kho an toàn trong luồng POS.
+ * Xem quy tắc tồn kho tại docs/04-quy-tac-nghiep-vu.md.
+ */
+
 namespace App\Models;
 
-use Exception;
+use App\Exceptions\LoiBanHangException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -38,7 +44,7 @@ class Inventory extends Model
     public function deductStock(int $qty): void
     {
         if (! $this->hasEnoughStock($qty)) {
-            throw new Exception('Sản phẩm không đủ tồn kho!');
+            throw new LoiBanHangException('Sản phẩm không đủ tồn kho!');
         }
 
         $this->decrement('current_stock', $qty);

@@ -71,8 +71,10 @@ Route::middleware(['auth'])->group(function () {
     // ----- BÁN HÀNG: màn hình POS (theo sơ đồ use case, chỉ Nhân viên bán hàng dùng POS) -----
     Route::middleware(['role:SALES'])->group(function () {
         Route::get('/pos', [PosOrderController::class, 'posScreen']);
-        Route::get('/pos/scan', [PosOrderController::class, 'scanBarcode']);
-        Route::post('/pos/checkout', [PosOrderController::class, 'checkout']);
+        Route::get('/pos/scan', [PosOrderController::class, 'scanBarcode'])->middleware('throttle:120,1');
+        Route::get('/pos/search', [PosOrderController::class, 'timSanPham'])->middleware('throttle:120,1');
+        Route::post('/pos/checkout', [PosOrderController::class, 'checkout'])->middleware('throttle:60,1');
         Route::get('/pos/history', [PosOrderController::class, 'myHistory']);
+        Route::get('/pos/history/{order}', [PosOrderController::class, 'chiTietHoaDon'])->whereNumber('order');
     });
 });

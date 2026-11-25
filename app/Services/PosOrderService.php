@@ -1,12 +1,18 @@
 <?php
 
+/*
+ * Service thực hiện nghiệp vụ thanh toán POS trong transaction: kiểm tra, tạo order và trừ kho.
+ * PosOrderController gọi checkout; service dùng Product, Inventory, Order và OrderDetail.
+ * Xem quy tắc tại docs/04-quy-tac-nghiep-vu.md và luồng tại docs/02-luong-ban-hang-pos.md.
+ */
+
 namespace App\Services;
 
+use App\Exceptions\LoiBanHangException;
 use App\Models\Inventory;
 use App\Models\Order;
 use App\Models\OrderDetail;
 use App\Models\Product;
-use Exception;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
@@ -26,7 +32,8 @@ class PosOrderService
         $quantities = [];
         foreach ($items as $item) {
             $sku = trim((string) $item['sku_code']);
-            $quantities[$sku] = ($quantities[$sku] ?? 0) + (int) $item['quantity'];
+            $key = 'sku:' . $sku;
+            $quantities[$key] = ($quantities[$key] ?? 0) + (int) $item['quantity'];
         }
 
         DB::beginTransaction();
@@ -36,11 +43,16 @@ class PosOrderService
             $totalAmount = 0;
 
             // Bước 1: kiểm tra và KHÓA tồn kho của từng mặt hàng.
-            foreach ($quantities as $sku => $quantity) {
+            foreach ($quantities as $key => $quantity) {
+                $sku = substr((string) $key, 4);
                 $product = Product::findBySku($sku);
 
-                if (! $product || ! $product->is_active) {
-                    throw new Exception("Không tìm thấy sản phẩm có mã {$sku}.");
+                if (! $product) {
+                    throw new LoiBanHangException("Không tìm thấy sản phẩm có mã {$sku}.");
+                }
+
+                if (! $product->is_active) {
+                    throw new LoiBanHangException("Sản phẩm {$product->name} đã ngừng bán.");
                 }
 
                 // lockForUpdate = SELECT ... FOR UPDATE: thu ngân khác phải chờ,
@@ -49,7 +61,7 @@ class PosOrderService
 
                 if (! $inventory || ! $inventory->hasEnoughStock($quantity)) {
                     $remaining = $inventory ? $inventory->current_stock : 0;
-                    throw new Exception("Sản phẩm {$product->name} không đủ số lượng trong kho (còn {$remaining}).");
+                    throw new LoiBanHangException("Sản phẩm {$product->name} không đủ số lượng trong kho (còn {$remaining}).");
                 }
 
                 // Giá lấy từ CSDL, không tin giá gửi lên từ trình duyệt.
@@ -71,14 +83,14 @@ class PosOrderService
                 // Chuyển khoản: khách trả đúng bằng tổng tiền, không có tiền thừa.
                 $customerPaid = $totalAmount;
             } elseif ($customerPaid < $totalAmount) {
-                throw new Exception('Tiền khách đưa chưa đủ.');
+                throw new LoiBanHangException('Tiền khách đưa chưa đủ.');
             }
 
             $changeAmount = $customerPaid - $totalAmount;
 
             // Bước 3: lưu hóa đơn.
             $order = Order::create([
-                'order_code' => Order::generateOrderCode(),
+                'order_code' => $this->taoMaHoaDonKhongTrung(),
                 'cashier_id' => $cashierId,
                 'total_amount' => $totalAmount,
                 'customer_paid' => $customerPaid,
@@ -94,6 +106,7 @@ class PosOrderService
                     'product_id' => $line['product']->id,
                     'quantity' => $line['quantity'],
                     'unit_price' => $line['unit_price'],
+                    'unit_cost' => (float) $line['product']->cost_price,
                     'subtotal' => $line['subtotal'],
                 ]);
 
@@ -108,5 +121,23 @@ class PosOrderService
 
             throw $e;
         }
+    }
+
+    public function taoMaHoaDonKhongTrung(): string
+    {
+        for ($attempt = 0; $attempt < 5; $attempt++) {
+            $code = $this->taoMaHoaDonUngVien();
+
+            if (! Order::where('order_code', $code)->exists()) {
+                return $code;
+            }
+        }
+
+        throw new LoiBanHangException('Không tạo được mã hóa đơn, vui lòng thử lại.');
+    }
+
+    public function taoMaHoaDonUngVien(): string
+    {
+        return 'ORD-' . date('YmdHis') . '-' . str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
     }
 }

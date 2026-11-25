@@ -1,7 +1,7 @@
 /*
- * Màn hình bán hàng POS.
- * Giỏ hàng được giữ tạm trong trình duyệt (biến cart). Chỉ khi bấm "Xác nhận thanh toán"
- * thì mới gửi lên máy chủ (POST /pos/checkout) để lưu hóa đơn và trừ tồn kho.
+ * JavaScript điều khiển giỏ hàng, quét SKU, kiểm tra số lượng và gửi thanh toán POS.
+ * Trang pos/index.blade.php cung cấp DOM; script gọi PosOrderController qua GET /pos/scan và POST /pos/checkout.
+ * Luồng giao diện và phím tắt được mô tả tại docs/02-luong-ban-hang-pos.md.
  */
 (function () {
     'use strict';
@@ -12,6 +12,7 @@
     }
 
     var scanUrl = app.getAttribute('data-scan-url');
+    var searchUrl = app.getAttribute('data-search-url');
     var checkoutUrl = app.getAttribute('data-checkout-url');
     var csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
 
@@ -21,6 +22,7 @@
     var totalEl = document.getElementById('total-amount');
     var paidInput = document.getElementById('customer-paid');
     var changeEl = document.getElementById('change-amount');
+    var cashSuggestionsBox = document.getElementById('cash-suggestions');
     var cashBox = document.getElementById('cash-box');
     var qrBox = document.getElementById('qr-box');
     var qrAmountEl = document.getElementById('qr-amount');
@@ -31,6 +33,11 @@
 
     // Mỗi phần tử: { sku_code, name, unit, price, stock, quantity }
     var cart = [];
+    var submitting = false;
+    var suggestions = [];
+    var activeSuggestion = -1;
+    var searchTimer = null;
+    var latestSearchId = 0;
 
     function formatMoney(value) {
         return Math.round(value).toLocaleString('vi-VN') + ' đ';
@@ -152,38 +159,51 @@
         renderSummary();
     }
 
-    // Các nút chọn nhanh số tiền khách đưa: đúng tổng tiền, làm tròn lên 10.000, làm tròn lên 100.000, 500.000, 1.000.000.
+    // Gợi ý tiền vừa đủ, mốc làm tròn dễ đưa và tiền thối thuận tiện.
     function renderChips(total) {
         chipsBox.innerHTML = '';
         if (total <= 0) {
+            cashSuggestionsBox.classList.add('hidden');
             return;
         }
 
-        var candidates = [
-            total,
-            Math.ceil(total / 10000) * 10000,
-            Math.ceil(total / 100000) * 100000,
-            500000,
-            1000000
-        ];
-        var shown = [];
-        candidates.forEach(function (value) {
-            if (value >= total && shown.indexOf(value) === -1 && shown.length < 4) {
-                shown.push(value);
+        cashSuggestionsBox.classList.remove('hidden');
+        var exactAmount = Math.ceil(total);
+        var roundingSteps = [5000, 10000, 20000, 50000, 100000, 200000, 500000];
+        var candidates = [exactAmount];
+
+        roundingSteps.forEach(function (step) {
+            var roundedAmount = Math.ceil(exactAmount / step) * step;
+            if (roundedAmount > exactAmount) {
+                candidates.push(roundedAmount);
             }
         });
 
-        shown.forEach(function (value) {
-            var chip = document.createElement('button');
-            chip.type = 'button';
-            chip.textContent = Math.round(value).toLocaleString('vi-VN');
-            chip.addEventListener('click', function () {
-                paidInput.value = String(value);
-                clearMessage();
-                renderSummary();
+        var nextHalfMillion = Math.ceil(exactAmount / 500000) * 500000;
+        if (nextHalfMillion <= exactAmount) {
+            nextHalfMillion += 500000;
+        }
+        candidates.push(nextHalfMillion);
+
+        Array.from(new Set(candidates))
+            .filter(function (value) {
+                return value >= exactAmount;
+            })
+            .sort(function (a, b) {
+                return a - b;
+            })
+            .slice(0, 8)
+            .forEach(function (value) {
+                var chip = document.createElement('button');
+                chip.type = 'button';
+                chip.textContent = formatMoney(value);
+                chip.addEventListener('click', function () {
+                    paidInput.value = String(value);
+                    clearMessage();
+                    renderSummary();
+                });
+                chipsBox.appendChild(chip);
             });
-            chipsBox.appendChild(chip);
-        });
     }
 
     // Tính lại tổng tiền, tiền thừa, hiện/ẩn khung QR.
@@ -213,12 +233,21 @@
     // Nhân viên gõ tay số lượng trong giỏ.
     function changeQuantity(index, rawValue) {
         var item = cart[index];
-        var quantity = parseInt(rawValue, 10);
 
         clearMessage();
 
-        if (isNaN(quantity) || quantity < 1) {
-            quantity = 1;
+        var raw = String(rawValue).trim();
+        if (!/^\d+$/.test(raw)) {
+            showMessage('Số lượng phải là số nguyên từ 1 trở lên.');
+            render();
+            return;
+        }
+
+        var quantity = parseInt(raw, 10);
+        if (!Number.isSafeInteger(quantity) || quantity < 1) {
+            showMessage('Số lượng phải là số nguyên từ 1 trở lên.');
+            render();
+            return;
         }
 
         if (quantity > item.stock) {
@@ -240,8 +269,167 @@
         });
     }
 
+    var suggestionBox = document.getElementById('sku-suggestions');
+
+    function closeSuggestions() {
+        latestSearchId++;
+        suggestions = [];
+        activeSuggestion = -1;
+        suggestionBox.innerHTML = '';
+        suggestionBox.classList.add('hidden');
+    }
+
+    function renderSuggestions(items) {
+        suggestions = items;
+        activeSuggestion = -1;
+        suggestionBox.innerHTML = '';
+
+        if (items.length === 0) {
+            var empty = document.createElement('div');
+            empty.className = 'sku-suggestion-empty';
+            empty.textContent = 'Không có sản phẩm phù hợp.';
+            suggestionBox.appendChild(empty);
+            suggestionBox.classList.remove('hidden');
+            return;
+        }
+
+        items.forEach(function (product, index) {
+            var row = document.createElement('div');
+            row.className = 'sku-suggestion';
+            row.setAttribute('role', 'option');
+            if (product.current_stock <= 0) {
+                row.className += ' disabled';
+                row.setAttribute('aria-disabled', 'true');
+            }
+
+            var top = document.createElement('div');
+            top.className = 'sku-suggestion-top';
+
+            var code = document.createElement('b');
+            code.textContent = product.sku_code;
+            top.appendChild(code);
+
+            var stock = document.createElement('span');
+            stock.textContent = product.current_stock <= 0 ? 'Hết hàng' : 'Tồn: ' + product.current_stock;
+            top.appendChild(stock);
+
+            var name = document.createElement('div');
+            name.textContent = product.name + ' - ' + product.unit + ' - ' + formatMoney(product.selling_price);
+
+            row.appendChild(top);
+            row.appendChild(name);
+
+            if (product.current_stock > 0) {
+                row.addEventListener('mousedown', function (event) {
+                    event.preventDefault();
+                    addBySku(product);
+                });
+                row.addEventListener('mouseenter', function () {
+                    setActiveSuggestion(index);
+                });
+            }
+
+            suggestionBox.appendChild(row);
+        });
+
+        suggestionBox.classList.remove('hidden');
+    }
+
+    function setActiveSuggestion(index) {
+        var rows = suggestionBox.querySelectorAll('.sku-suggestion');
+        for (var i = 0; i < rows.length; i++) {
+            rows[i].classList.remove('active');
+        }
+        if (index >= 0 && index < suggestions.length) {
+            activeSuggestion = index;
+            if (!rows[index].classList.contains('disabled')) {
+                rows[index].classList.add('active');
+            } else {
+                activeSuggestion = -1;
+            }
+        } else {
+            activeSuggestion = -1;
+        }
+    }
+
+    function searchSuggestions() {
+        var q = skuInput.value.trim();
+        if (q.length < 2) {
+            closeSuggestions();
+            return;
+        }
+
+        var searchId = ++latestSearchId;
+        fetch(searchUrl + '?q=' + encodeURIComponent(q), {
+            headers: { 'Accept': 'application/json' },
+            credentials: 'same-origin'
+        })
+            .then(readJson)
+            .then(function (result) {
+                if (searchId !== latestSearchId) {
+                    return;
+                }
+                if (!result.ok) {
+                    closeSuggestions();
+                    return;
+                }
+                renderSuggestions(result.data.data || []);
+            })
+            .catch(function () {
+                if (searchId === latestSearchId) {
+                    closeSuggestions();
+                }
+            });
+    }
+
     // Quét mã / gõ mã SKU: hỏi máy chủ thông tin sản phẩm rồi thêm vào giỏ.
-    function addBySku() {
+    function addProductToCart(product) {
+        var existing = null;
+        for (var i = 0; i < cart.length; i++) {
+            if (cart[i].sku_code === product.sku_code) {
+                existing = cart[i];
+            }
+        }
+
+        var wanted = existing ? existing.quantity + 1 : 1;
+        if (wanted > product.current_stock) {
+            showMessage('Sản phẩm không đủ số lượng trong kho, không thể thêm vào giỏ. Tồn kho hiện tại: ' + product.current_stock + '.');
+            if (existing) {
+                existing.stock = product.current_stock;
+            }
+            render();
+            return;
+        }
+
+        if (existing) {
+            existing.quantity = wanted;
+            existing.stock = product.current_stock;
+            existing.price = product.selling_price;
+        } else {
+            cart.push({
+                sku_code: product.sku_code,
+                name: product.name,
+                unit: product.unit,
+                price: product.selling_price,
+                stock: product.current_stock,
+                quantity: 1
+            });
+        }
+
+        render();
+    }
+
+    function addBySku(productOverride) {
+        if (productOverride) {
+            clearMessage();
+            receipt.classList.add('hidden');
+            addProductToCart(productOverride);
+            skuInput.value = '';
+            closeSuggestions();
+            skuInput.focus();
+            return;
+        }
+
         var sku = skuInput.value.trim();
         if (sku === '') {
             return;
@@ -249,6 +437,7 @@
 
         clearMessage();
         receipt.classList.add('hidden');
+        closeSuggestions();
 
         fetch(scanUrl + '?sku_code=' + encodeURIComponent(sku), {
             headers: { 'Accept': 'application/json' },
@@ -261,41 +450,7 @@
                     return;
                 }
 
-                var product = result.data;
-                var existing = null;
-                for (var i = 0; i < cart.length; i++) {
-                    if (cart[i].sku_code === product.sku_code) {
-                        existing = cart[i];
-                    }
-                }
-
-                var wanted = existing ? existing.quantity + 1 : 1;
-                if (wanted > product.current_stock) {
-                    showMessage('Sản phẩm không đủ số lượng trong kho, không thể thêm vào giỏ. Tồn kho hiện tại: ' + product.current_stock + '.');
-                    if (existing) {
-                        existing.stock = product.current_stock;
-                    }
-                    render();
-                    return;
-                }
-
-                if (existing) {
-                    // Quét lại cùng mã: cộng dồn số lượng +1.
-                    existing.quantity = wanted;
-                    existing.stock = product.current_stock;
-                    existing.price = product.selling_price;
-                } else {
-                    cart.push({
-                        sku_code: product.sku_code,
-                        name: product.name,
-                        unit: product.unit,
-                        price: product.selling_price,
-                        stock: product.current_stock,
-                        quantity: 1
-                    });
-                }
-
-                render();
+                addProductToCart(result.data);
             })
             .catch(function () {
                 showMessage('Không kết nối được máy chủ.');
@@ -332,6 +487,10 @@
 
     // Gửi giỏ hàng lên máy chủ để lưu hóa đơn và trừ tồn kho.
     function checkout() {
+        if (submitting) {
+            return;
+        }
+
         clearMessage();
 
         if (cart.length === 0) {
@@ -353,6 +512,7 @@
             return { sku_code: item.sku_code, quantity: item.quantity };
         });
 
+        submitting = true;
         checkoutBtn.disabled = true;
 
         fetch(checkoutUrl, {
@@ -369,7 +529,14 @@
             .then(function (result) {
                 if (!result.ok) {
                     // Lỗi (ví dụ hết hàng): báo lỗi và GIỮ NGUYÊN giỏ hàng.
-                    showMessage(result.data.message || 'Thanh toán không thành công.');
+                    var firstError = null;
+                    if (result.data.errors) {
+                        var errorKeys = Object.keys(result.data.errors);
+                        if (errorKeys.length > 0) {
+                            firstError = result.data.errors[errorKeys[0]][0];
+                        }
+                    }
+                    showMessage(firstError || result.data.message || 'Thanh toán không thành công.');
                     return;
                 }
 
@@ -384,6 +551,7 @@
                 showMessage('Không kết nối được máy chủ.');
             })
             .then(function () {
+                submitting = false;
                 checkoutBtn.disabled = false;
                 skuInput.focus();
             });
@@ -393,10 +561,64 @@
     document.getElementById('btn-scan').addEventListener('click', addBySku);
 
     skuInput.addEventListener('keydown', function (event) {
-        // Máy quét mã vạch tự gửi phím Enter sau khi điền mã.
+        if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+            event.preventDefault();
+            if (suggestions.length === 0) {
+                return;
+            }
+
+            var next = activeSuggestion;
+            if (event.key === 'ArrowDown') {
+                next = next + 1;
+            } else {
+                next = next - 1;
+            }
+
+            while (next >= 0 && next < suggestions.length && suggestions[next].current_stock <= 0) {
+                next += event.key === 'ArrowDown' ? 1 : -1;
+            }
+
+            if (next < 0) {
+                next = -1;
+            }
+            if (next >= suggestions.length) {
+                next = -1;
+            }
+            setActiveSuggestion(next);
+            return;
+        }
+
         if (event.key === 'Enter') {
             event.preventDefault();
-            addBySku();
+            if (activeSuggestion >= 0 && suggestions[activeSuggestion]) {
+                addBySku(suggestions[activeSuggestion]);
+            } else {
+                clearTimeout(searchTimer);
+                closeSuggestions();
+                addBySku();
+            }
+            return;
+        }
+
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            closeSuggestions();
+        }
+    });
+
+    skuInput.addEventListener('input', function () {
+        clearTimeout(searchTimer);
+        var q = skuInput.value.trim();
+        if (q.length < 2) {
+            closeSuggestions();
+            return;
+        }
+        searchTimer = setTimeout(searchSuggestions, 250);
+    });
+
+    document.addEventListener('mousedown', function (event) {
+        if (!event.target.closest('.sku-search-wrap')) {
+            closeSuggestions();
         }
     });
 
@@ -431,6 +653,14 @@
 
     document.addEventListener('keydown', function (event) {
         if (event.key === 'F9') {
+            if (event.repeat) {
+                return;
+            }
+
+            if (event.target && event.target.classList && event.target.classList.contains('input-qty')) {
+                return;
+            }
+
             event.preventDefault();
             checkout();
         }

@@ -56,6 +56,10 @@ Lưu ý: `migrate:fresh --seed` xóa toàn bộ dữ liệu cũ và tạo lại 
 - Chưa có tải ảnh sản phẩm (cột `image_url` để trống).
 - Chưa có kiểm thử tự động.
 
+## Tài liệu
+
+Bộ tài liệu kỹ thuật bằng tiếng Việt dành cho người phát triển và kiểm thử nằm trong [docs/](docs/00-muc-luc.md). Bắt đầu bằng [mục lục tài liệu](docs/00-muc-luc.md), đặc biệt đọc [luồng bán hàng POS](docs/02-luong-ban-hang-pos.md) để hiểu từ tìm và quét mã đến tạo hóa đơn, lọc lịch sử và xem/in lại hóa đơn. Khi triển khai MySQL bằng XAMPP, xem [hướng dẫn chạy MySQL](docs/09-huong-dan-chay-mysql.md).
+
 ## Cấu trúc thư mục chính
 
 ```

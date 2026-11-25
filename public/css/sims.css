@@ -75,6 +75,8 @@ td.num, th.num { text-align: right; }
 /* Màn hình POS */
 .pos-scan { display: flex; gap: 10px; }
 .pos-scan .input { margin-top: 0; font-size: 16px; }
+.pos-container .pos-cart-card { flex: 6; }
+.pos-container .pos-payment-card { flex: 4; min-width: 400px; }
 .summary-line { display: flex; justify-content: space-between; margin-top: 14px; font-size: 15px; }
 .summary-total { font-size: 18px; color: #0066CC; }
 .change-box { display: flex; justify-content: space-between; margin-top: 18px; padding: 12px; background: #F8FAFC; border-radius: 6px; }
@@ -98,6 +100,11 @@ td.num, th.num { text-align: right; }
 @media (max-width: 900px) {
     .container { flex-direction: column; }
     .col-side { width: 100%; }
+    .pos-container .pos-payment-card { min-width: 0; }
+}
+
+@media (max-width: 480px) {
+    .chips { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 /* ===== Bổ sung cho các màn hình Quản trị, Báo cáo và Đổi mật khẩu ===== */
@@ -150,11 +157,29 @@ tr.row-off td { color: #94A3B8; }
 .tabs a { padding: 8px 16px; border-radius: 6px; border: 1px solid #CBD5E1; font-size: 14px; font-weight: 600; color: #334155; background: #fff; }
 .tabs a.active { background: #0066CC; border-color: #0066CC; color: #fff; }
 
-/* POS: nút cộng trừ và nút chọn nhanh số tiền */
+/* Lịch sử POS và phân trang đơn giản */
+.history-filter { display: flex; align-items: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+.history-filter .input { width: 180px; margin-top: 0; }
+.history-summary { margin-bottom: 4px; }
+.history-pagination { display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 16px; }
+.history-pagination span { color: #64748B; font-size: 13px; }
+
+/* POS: ô gợi ý sản phẩm, nút cộng trừ và nút chọn nhanh số tiền */
+.sku-search-wrap { position: relative; flex: 1; }
+.sku-suggestions { position: absolute; left: 0; right: 0; top: 46px; z-index: 40; background: #fff; border: 1px solid #CBD5E1; border-radius: 6px; box-shadow: 0 10px 24px rgba(15,23,42,0.18); max-height: 320px; overflow-y: auto; }
+.sku-suggestion { padding: 10px 12px; border-bottom: 1px solid #E2E8F0; cursor: pointer; font-size: 13px; }
+.sku-suggestion:last-child { border-bottom: none; }
+.sku-suggestion:hover, .sku-suggestion.active { background: #EFF6FF; }
+.sku-suggestion.disabled { opacity: 0.55; cursor: not-allowed; background: #F8FAFC; }
+.sku-suggestion-top { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 3px; }
+.sku-suggestion-empty { padding: 12px; color: #64748B; font-size: 13px; text-align: center; }
 .qty { display: flex; align-items: center; gap: 6px; }
 .qty button { width: 30px; height: 34px; border: 1px solid #CBD5E1; border-radius: 6px; background: #F8FAFC; font-weight: 700; font-size: 16px; color: #475569; cursor: pointer; }
 .qty .input-qty { width: 64px; text-align: center; }
-.chips { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
-.chips button { padding: 5px 10px; border: 1px solid #CBD5E1; border-radius: 14px; font-size: 12px; color: #475569; background: #F8FAFC; cursor: pointer; }
-.chips button:hover { border-color: #0066CC; color: #0066CC; }
+.cash-suggestions { max-width: 100%; margin-top: 8px; padding: 10px; border-radius: 8px; background: #F1F3F5; }
+.chips { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; max-width: 100%; }
+.chips button { width: 100%; min-width: 0; padding: 7px 4px; border: 1px solid #D8DEE5; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; color: #334155; background: #fff; cursor: pointer; transition: background-color 0.15s, border-color 0.15s, color 0.15s; }
+.chips button:hover { border-color: #0066CC; color: #0066CC; background: #F0F7FF; }
+.chips button:focus-visible { outline: 2px solid #0066CC; outline-offset: 2px; }
+.chips button:active { border-color: #0066CC; background: #E0F2FE; transform: translateY(1px); }
 td.num, th.num { white-space: nowrap; }
