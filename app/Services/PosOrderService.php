@@ -1,8 +1,14 @@
 <?php
 
+/*
+ * Service thực hiện nghiệp vụ thanh toán POS trong transaction: kiểm tra, tạo order và trừ kho.
+ * PosOrderController gọi checkout; service dùng Product, Inventory, Order và OrderDetail.
+ * Xem quy tắc tại docs/04-quy-tac-nghiep-vu.md và luồng tại docs/02-luong-ban-hang-pos.md.
+ */
+
 namespace App\Services;
 
-use App\Exceptions\PosException;
+use App\Exceptions\LoiBanHangException;
 use App\Models\Inventory;
 use App\Models\Order;
 use App\Models\OrderDetail;
@@ -42,11 +48,11 @@ class PosOrderService
                 $product = Product::findBySku($sku);
 
                 if (! $product) {
-                    throw new PosException("Không tìm thấy sản phẩm có mã {$sku}.");
+                    throw new LoiBanHangException("Không tìm thấy sản phẩm có mã {$sku}.");
                 }
 
                 if (! $product->is_active) {
-                    throw new PosException("Sản phẩm {$product->name} đã ngừng bán.");
+                    throw new LoiBanHangException("Sản phẩm {$product->name} đã ngừng bán.");
                 }
 
                 // lockForUpdate = SELECT ... FOR UPDATE: thu ngân khác phải chờ,
@@ -55,7 +61,7 @@ class PosOrderService
 
                 if (! $inventory || ! $inventory->hasEnoughStock($quantity)) {
                     $remaining = $inventory ? $inventory->current_stock : 0;
-                    throw new PosException("Sản phẩm {$product->name} không đủ số lượng trong kho (còn {$remaining}).");
+                    throw new LoiBanHangException("Sản phẩm {$product->name} không đủ số lượng trong kho (còn {$remaining}).");
                 }
 
                 // Giá lấy từ CSDL, không tin giá gửi lên từ trình duyệt.
@@ -77,14 +83,14 @@ class PosOrderService
                 // Chuyển khoản: khách trả đúng bằng tổng tiền, không có tiền thừa.
                 $customerPaid = $totalAmount;
             } elseif ($customerPaid < $totalAmount) {
-                throw new PosException('Tiền khách đưa chưa đủ.');
+                throw new LoiBanHangException('Tiền khách đưa chưa đủ.');
             }
 
             $changeAmount = $customerPaid - $totalAmount;
 
             // Bước 3: lưu hóa đơn.
             $order = Order::create([
-                'order_code' => $this->generateUniqueOrderCode(),
+                'order_code' => $this->taoMaHoaDonKhongTrung(),
                 'cashier_id' => $cashierId,
                 'total_amount' => $totalAmount,
                 'customer_paid' => $customerPaid,
@@ -117,20 +123,20 @@ class PosOrderService
         }
     }
 
-    public function generateUniqueOrderCode(): string
+    public function taoMaHoaDonKhongTrung(): string
     {
         for ($attempt = 0; $attempt < 5; $attempt++) {
-            $code = $this->generateOrderCodeCandidate();
+            $code = $this->taoMaHoaDonUngVien();
 
             if (! Order::where('order_code', $code)->exists()) {
                 return $code;
             }
         }
 
-        throw new PosException('Không tạo được mã hóa đơn, vui lòng thử lại.');
+        throw new LoiBanHangException('Không tạo được mã hóa đơn, vui lòng thử lại.');
     }
 
-    public function generateOrderCodeCandidate(): string
+    public function taoMaHoaDonUngVien(): string
     {
         return 'ORD-' . date('YmdHis') . '-' . str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
     }

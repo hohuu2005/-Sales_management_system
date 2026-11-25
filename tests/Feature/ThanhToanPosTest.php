@@ -1,5 +1,11 @@
 <?php
 
+/*
+ * Bài kiểm thử chức năng thanh toán POS bằng HTTP, transaction, tồn kho và phân quyền.
+ * Chạy từ Laravel Test runner và mô phỏng dữ liệu trực tiếp qua model.
+ * Cách chạy và danh sách ca kiểm thử nằm tại docs/06-huong-dan-kiem-thu.md.
+ */
+
 namespace Tests\Feature;
 
 use App\Models\Category;
@@ -14,7 +20,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
-class PosCheckoutTest extends TestCase
+class ThanhToanPosTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -68,7 +74,7 @@ class PosCheckoutTest extends TestCase
         return [$product, $inventory];
     }
 
-    public function test_checkout_cash_success_deducts_stock_and_saves_prices(): void
+    public function test_thanh_toan_tien_mat_thanh_cong_va_tru_kho(): void
     {
         $sales = $this->createSalesUser();
         [$product, $inventory] = $this->createProduct();
@@ -93,7 +99,7 @@ class PosCheckoutTest extends TestCase
         $this->assertEquals('80000.00', $detail->unit_cost);
     }
 
-    public function test_duplicate_sku_lines_are_merged_and_total_stock_is_deducted(): void
+    public function test_gop_cac_dong_trung_sku(): void
     {
         $sales = $this->createSalesUser();
         [$product] = $this->createProduct([], ['current_stock' => 10]);
@@ -116,7 +122,7 @@ class PosCheckoutTest extends TestCase
         $this->assertEquals(5, OrderDetail::firstOrFail()->quantity);
     }
 
-    public function test_cash_customer_paid_too_little_returns_422_without_changes(): void
+    public function test_tien_khach_dua_thieu_tra_ve_422(): void
     {
         $sales = $this->createSalesUser();
         [$product] = $this->createProduct([], ['current_stock' => 10]);
@@ -133,7 +139,7 @@ class PosCheckoutTest extends TestCase
         $this->assertDatabaseHas('inventories', ['product_id' => $product->id, 'current_stock' => 10]);
     }
 
-    public function test_quantity_over_stock_returns_422_without_changes(): void
+    public function test_so_luong_vuot_ton_kho(): void
     {
         $sales = $this->createSalesUser();
         [$product] = $this->createProduct([], ['current_stock' => 2]);
@@ -150,7 +156,7 @@ class PosCheckoutTest extends TestCase
         $this->assertDatabaseHas('inventories', ['product_id' => $product->id, 'current_stock' => 2]);
     }
 
-    public function test_inactive_product_returns_422_with_clear_message(): void
+    public function test_san_pham_ngung_ban(): void
     {
         $sales = $this->createSalesUser();
         [$product] = $this->createProduct(['is_active' => false]);
@@ -166,7 +172,7 @@ class PosCheckoutTest extends TestCase
         $this->assertDatabaseCount('orders', 0);
     }
 
-    public function test_client_unit_price_is_ignored(): void
+    public function test_bo_qua_don_gia_do_trinh_duyet_gui(): void
     {
         $sales = $this->createSalesUser();
         [$product] = $this->createProduct();
@@ -182,7 +188,7 @@ class PosCheckoutTest extends TestCase
         $this->assertEquals('100000.00', (string) OrderDetail::firstOrFail()->unit_price);
     }
 
-    public function test_non_sales_user_receives_403(): void
+    public function test_tai_khoan_khong_phai_sales_bi_chan_403(): void
     {
         $admin = $this->createSalesUser([
             'employee_code' => 'NV-ADMIN',
@@ -200,7 +206,7 @@ class PosCheckoutTest extends TestCase
         $response->assertForbidden();
     }
 
-    public function test_unexpected_detail_error_rolls_back_and_hides_details(): void
+    public function test_loi_bat_ngo_hoan_tac_va_khong_lo_chi_tiet(): void
     {
         $sales = $this->createSalesUser();
         [$product] = $this->createProduct();
@@ -222,7 +228,7 @@ class PosCheckoutTest extends TestCase
         $this->assertDatabaseHas('inventories', ['product_id' => $product->id, 'current_stock' => 10]);
     }
 
-    public function test_order_code_collision_retries_and_still_creates_order(): void
+    public function test_ma_hoa_don_trung_se_thu_lai(): void
     {
         $sales = $this->createSalesUser();
         [$product] = $this->createProduct();
@@ -238,10 +244,10 @@ class PosCheckoutTest extends TestCase
         ]);
 
         $service = $this->getMockBuilder(PosOrderService::class)
-            ->onlyMethods(['generateOrderCodeCandidate'])
+            ->onlyMethods(['taoMaHoaDonUngVien'])
             ->getMock();
         $service->expects($this->exactly(2))
-            ->method('generateOrderCodeCandidate')
+            ->method('taoMaHoaDonUngVien')
             ->willReturnOnConsecutiveCalls('ORD-COLLISION-0001', 'ORD-UNIQUE-0001');
 
         $this->app->instance(PosOrderService::class, $service);

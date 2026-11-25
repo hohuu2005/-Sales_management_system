@@ -1,5 +1,17 @@
 <?php
 
+/*
+ * Model đại diện từng dòng hàng trong hóa đơn, gồm giá bán và giá vốn chốt lúc bán.
+ * Được PosOrderService tạo sau khi khóa tồn kho và kiểm tra giỏ hàng.
+ * Xem sự khác nhau của unit_price, unit_cost và cost_price tại docs/03-co-so-du-lieu.md.
+ */
+
+/*
+ * Model đại diện từng dòng hàng trong hóa đơn, gồm giá bán và giá vốn chốt lúc bán.
+ * Được PosOrderService tạo sau khi khóa tồn kho và kiểm tra giỏ hàng.
+ * Xem sự khác nhau của unit_price, unit_cost và cost_price tại docs/03-co-so-du-lieu.md.
+ */
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;

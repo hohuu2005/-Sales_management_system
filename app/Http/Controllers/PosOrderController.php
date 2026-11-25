@@ -1,8 +1,14 @@
 <?php
 
+/*
+ * Controller nhận request POS: quét SKU, thanh toán và xem lịch sử hóa đơn của thu ngân.
+ * Route gọi controller từ routes/web.php, logic nghiệp vụ chính được chuyển sang PosOrderService.
+ * Xem luồng chi tiết tại docs/02-luong-ban-hang-pos.md.
+ */
+
 namespace App\Http\Controllers;
 
-use App\Exceptions\PosException;
+use App\Exceptions\LoiBanHangException;
 use App\Models\Order;
 use App\Models\Product;
 use App\Services\PosOrderService;
@@ -71,7 +77,7 @@ class PosOrderController extends Controller
                 (float) ($data['customer_paid'] ?? 0),
                 $data['items'],
             );
-        } catch (PosException $e) {
+        } catch (LoiBanHangException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
         } catch (Throwable $e) {
             report($e);

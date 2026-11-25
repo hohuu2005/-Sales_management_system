@@ -1,5 +1,17 @@
 <?php
 
+/*
+ * Model đại diện bảng hóa đơn orders và quan hệ với thu ngân cùng chi tiết hàng hóa.
+ * Được PosOrderService tạo trong luồng thanh toán và dùng tại lịch sử POS.
+ * Xem cấu trúc bảng tại docs/03-co-so-du-lieu.md.
+ */
+
+/*
+ * Model đại diện bảng hóa đơn orders và quan hệ với thu ngân cùng chi tiết hàng hóa.
+ * Được PosOrderService tạo trong luồng thanh toán và dùng tại lịch sử POS.
+ * Xem cấu trúc bảng tại docs/03-co-so-du-lieu.md.
+ */
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;

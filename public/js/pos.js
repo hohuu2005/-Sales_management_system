@@ -1,7 +1,7 @@
 /*
- * Màn hình bán hàng POS.
- * Giỏ hàng được giữ tạm trong trình duyệt (biến cart). Chỉ khi bấm "Xác nhận thanh toán"
- * thì mới gửi lên máy chủ (POST /pos/checkout) để lưu hóa đơn và trừ tồn kho.
+ * JavaScript điều khiển giỏ hàng, quét SKU, kiểm tra số lượng và gửi thanh toán POS.
+ * Trang pos/index.blade.php cung cấp DOM; script gọi PosOrderController qua GET /pos/scan và POST /pos/checkout.
+ * Luồng giao diện và phím tắt được mô tả tại docs/02-luong-ban-hang-pos.md.
  */
 (function () {
     'use strict';
