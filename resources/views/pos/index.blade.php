@@ -34,9 +34,9 @@
             </div>
         </div>
 
-        <div class="container no-print">
+        <div class="container no-print pos-container">
             {{-- Cột trái: quét mã và giỏ hàng --}}
-            <div class="card col-main">
+            <div class="card col-main pos-cart-card">
                 <div class="pos-scan">
                     <div class="sku-search-wrap">
                         <input class="input" id="sku-input" type="text" autocomplete="off" autofocus
@@ -65,7 +65,7 @@
             </div>
 
             {{-- Cột phải: thanh toán --}}
-            <div class="card col-side">
+            <div class="card col-side pos-payment-card">
                 <h3 class="card-title">THÔNG TIN HÓA ĐƠN</h3>
 
                 <div class="summary-line summary-total">
@@ -81,8 +81,10 @@
                 <div id="cash-box">
                     <label for="customer-paid">Tiền khách đưa</label>
                     <input class="input input-money" id="customer-paid" type="number" min="0" step="1000" placeholder="0">
-                    {{-- Các nút chọn nhanh số tiền do public/js/pos.js tạo theo tổng tiền --}}
-                    <div class="chips" id="cash-chips"></div>
+                    {{-- Gợi ý tiền mặt được public/js/pos.js tạo theo tổng tiền --}}
+                    <div class="cash-suggestions hidden" id="cash-suggestions">
+                        <div class="chips" id="cash-chips"></div>
+                    </div>
                     <div class="change-box">
                         <span>Tiền thừa trả khách:</span><b id="change-amount">0 đ</b>
                     </div>

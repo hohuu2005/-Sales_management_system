@@ -22,6 +22,7 @@
     var totalEl = document.getElementById('total-amount');
     var paidInput = document.getElementById('customer-paid');
     var changeEl = document.getElementById('change-amount');
+    var cashSuggestionsBox = document.getElementById('cash-suggestions');
     var cashBox = document.getElementById('cash-box');
     var qrBox = document.getElementById('qr-box');
     var qrAmountEl = document.getElementById('qr-amount');
@@ -158,33 +159,51 @@
         renderSummary();
     }
 
-    // Các mức tiền khách có thể đưa: đúng tổng tiền và các mệnh giá tiền Việt Nam đủ hoặc vượt tổng tiền.
+    // Gợi ý tiền vừa đủ, mốc làm tròn dễ đưa và tiền thối thuận tiện.
     function renderChips(total) {
         chipsBox.innerHTML = '';
         if (total <= 0) {
+            cashSuggestionsBox.classList.add('hidden');
             return;
         }
 
-        var denominations = [1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000, 1000000];
-        var candidates = [Math.round(total)];
+        cashSuggestionsBox.classList.remove('hidden');
+        var exactAmount = Math.ceil(total);
+        var roundingSteps = [5000, 10000, 20000, 50000, 100000, 200000, 500000];
+        var candidates = [exactAmount];
 
-        denominations.forEach(function (denomination) {
-            if (denomination >= total) {
-                candidates.push(denomination);
+        roundingSteps.forEach(function (step) {
+            var roundedAmount = Math.ceil(exactAmount / step) * step;
+            if (roundedAmount > exactAmount) {
+                candidates.push(roundedAmount);
             }
         });
 
-        candidates.forEach(function (value) {
-            var chip = document.createElement('button');
-            chip.type = 'button';
-            chip.textContent = formatMoney(value);
-            chip.addEventListener('click', function () {
-                paidInput.value = String(value);
-                clearMessage();
-                renderSummary();
+        var nextHalfMillion = Math.ceil(exactAmount / 500000) * 500000;
+        if (nextHalfMillion <= exactAmount) {
+            nextHalfMillion += 500000;
+        }
+        candidates.push(nextHalfMillion);
+
+        Array.from(new Set(candidates))
+            .filter(function (value) {
+                return value >= exactAmount;
+            })
+            .sort(function (a, b) {
+                return a - b;
+            })
+            .slice(0, 8)
+            .forEach(function (value) {
+                var chip = document.createElement('button');
+                chip.type = 'button';
+                chip.textContent = formatMoney(value);
+                chip.addEventListener('click', function () {
+                    paidInput.value = String(value);
+                    clearMessage();
+                    renderSummary();
+                });
+                chipsBox.appendChild(chip);
             });
-            chipsBox.appendChild(chip);
-        });
     }
 
     // Tính lại tổng tiền, tiền thừa, hiện/ẩn khung QR.

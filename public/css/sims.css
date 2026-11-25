@@ -75,6 +75,8 @@ td.num, th.num { text-align: right; }
 /* Màn hình POS */
 .pos-scan { display: flex; gap: 10px; }
 .pos-scan .input { margin-top: 0; font-size: 16px; }
+.pos-container .pos-cart-card { flex: 6; }
+.pos-container .pos-payment-card { flex: 4; min-width: 400px; }
 .summary-line { display: flex; justify-content: space-between; margin-top: 14px; font-size: 15px; }
 .summary-total { font-size: 18px; color: #0066CC; }
 .change-box { display: flex; justify-content: space-between; margin-top: 18px; padding: 12px; background: #F8FAFC; border-radius: 6px; }
@@ -98,6 +100,11 @@ td.num, th.num { text-align: right; }
 @media (max-width: 900px) {
     .container { flex-direction: column; }
     .col-side { width: 100%; }
+    .pos-container .pos-payment-card { min-width: 0; }
+}
+
+@media (max-width: 480px) {
+    .chips { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 /* ===== Bổ sung cho các màn hình Quản trị, Báo cáo và Đổi mật khẩu ===== */
@@ -169,7 +176,10 @@ tr.row-off td { color: #94A3B8; }
 .qty { display: flex; align-items: center; gap: 6px; }
 .qty button { width: 30px; height: 34px; border: 1px solid #CBD5E1; border-radius: 6px; background: #F8FAFC; font-weight: 700; font-size: 16px; color: #475569; cursor: pointer; }
 .qty .input-qty { width: 64px; text-align: center; }
-.chips { display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
-.chips button { padding: 5px 10px; border: 1px solid #CBD5E1; border-radius: 14px; font-size: 12px; color: #475569; background: #F8FAFC; cursor: pointer; }
-.chips button:hover { border-color: #0066CC; color: #0066CC; }
+.cash-suggestions { max-width: 100%; margin-top: 8px; padding: 10px; border-radius: 8px; background: #F1F3F5; }
+.chips { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; max-width: 100%; }
+.chips button { width: 100%; min-width: 0; padding: 7px 4px; border: 1px solid #D8DEE5; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; color: #334155; background: #fff; cursor: pointer; transition: background-color 0.15s, border-color 0.15s, color 0.15s; }
+.chips button:hover { border-color: #0066CC; color: #0066CC; background: #F0F7FF; }
+.chips button:focus-visible { outline: 2px solid #0066CC; outline-offset: 2px; }
+.chips button:active { border-color: #0066CC; background: #E0F2FE; transform: translateY(1px); }
 td.num, th.num { white-space: nowrap; }
