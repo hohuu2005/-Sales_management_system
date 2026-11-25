@@ -158,31 +158,26 @@
         renderSummary();
     }
 
-    // Các nút chọn nhanh số tiền khách đưa: đúng tổng tiền, làm tròn lên 10.000, làm tròn lên 100.000, 500.000, 1.000.000.
+    // Các mức tiền khách có thể đưa: đúng tổng tiền và các mệnh giá tiền Việt Nam đủ hoặc vượt tổng tiền.
     function renderChips(total) {
         chipsBox.innerHTML = '';
         if (total <= 0) {
             return;
         }
 
-        var candidates = [
-            total,
-            Math.ceil(total / 10000) * 10000,
-            Math.ceil(total / 100000) * 100000,
-            500000,
-            1000000
-        ];
-        var shown = [];
-        candidates.forEach(function (value) {
-            if (value >= total && shown.indexOf(value) === -1 && shown.length < 4) {
-                shown.push(value);
+        var denominations = [1000, 2000, 5000, 10000, 20000, 50000, 100000, 200000, 500000, 1000000];
+        var candidates = [Math.round(total)];
+
+        denominations.forEach(function (denomination) {
+            if (denomination >= total) {
+                candidates.push(denomination);
             }
         });
 
-        shown.forEach(function (value) {
+        candidates.forEach(function (value) {
             var chip = document.createElement('button');
             chip.type = 'button';
-            chip.textContent = Math.round(value).toLocaleString('vi-VN');
+            chip.textContent = formatMoney(value);
             chip.addEventListener('click', function () {
                 paidInput.value = String(value);
                 clearMessage();
