@@ -24,5 +24,7 @@
 | Khôi phục Boost | 25/11/2026 | Khôi phục boost đã có sẵn trong commit gốc | `composer.json`, `composer.lock` | d7d4cfa |
 | Validation tiếng Việt | 25/11/2026 | Bổ sung message validation, hiển thị errors đầu tiên trong POS JS và test ba giới hạn | `PosOrderController.php`, `pos.js`, `ThanhToanPosTest.php`, `pos/index.blade.php` | e705c89 |
 | Đóng sổ tài liệu | 25/11/2026 | Cập nhật tài liệu cũ, hoàn thiện hướng dẫn MySQL và nhật ký | `docs/`, `README.md` | 708f204 |
+| Tìm sản phẩm POS | 25/11/2026 | Thêm API tìm kiếm, hộp gợi ý và tìm SKU không phân biệt hoa thường | `PosOrderController.php`, `Product.php`, `pos.js`, `pos/index.blade.php`, route POS | 7b9d953 |
+| Lịch sử hóa đơn POS | 25/11/2026 | Thêm lọc ngày, phân trang, trạng thái, xem chi tiết và in lại | `PosOrderController.php`, `pos/history.blade.php`, `pos/chi-tiet-hoa-don.blade.php`, migration chỉ mục | b6cbd47 |
 
 Chạy `git log --oneline -8` để xem mã commit và mô tả đầy đủ.

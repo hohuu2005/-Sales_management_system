@@ -27,3 +27,8 @@
 17. **Throttle hai API POS**. Lý do: giảm request lặp hoặc spam. Nằm ở `routes/web.php`: checkout 60 request/phút, scan 120 request/phút.
 18. **Số lượng nhập tay phải là số nguyên**. `changeQuantity` trong `public/js/pos.js` không đổi quantity cũ với chuỗi rỗng, âm, thập phân hoặc chữ.
 19. **F9 không chạy khi đang gõ số lượng**. `public/js/pos.js` bỏ qua khi target có class `input-qty`; bỏ qua cả khi `event.repeat=true`.
+20. **Thoát ký tự LIKE**. `PosOrderController::timSanPham` đổi `!`, `\`, `%`, `_` thành chuỗi thoát để tìm ký tự đặc biệt không thành wildcard.
+21. **API tìm kiếm không trả giá vốn**. `timSanPham` chỉ trả `sku_code`, `name`, `unit`, `selling_price`, `current_stock`.
+22. **Hóa đơn chỉ xem bởi chủ sở hữu**. `chiTietHoaDon` lọc `cashier_id = Auth::id`; hóa đơn người khác hoặc không tồn tại trả 404 để không lộ sự tồn tại.
+23. **Hóa đơn CANCELLED không tính tổng**. `myHistory` đếm và cộng tổng tiền chỉ khi `status=COMPLETED`.
+24. **Lịch sử giới hạn bằng phân trang**. `myHistory` dùng 20 hóa đơn/trang và giữ tham số lọc bằng `withQueryString`.

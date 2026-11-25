@@ -57,6 +57,30 @@ sequenceDiagram
     JS-->>T: Hien hoa don hoac thong bao loi
 ```
 
+## Luồng tìm sản phẩm theo tên hoặc SKU một phần
+
+Sơ đồ gợi ý tìm kiếm:
+
+```mermaid
+sequenceDiagram
+    participant T as Thu ngan
+    participant JS as Trinh duyet pos.js
+    participant C as PosOrderController
+    participant DB as Co so du lieu
+
+    T->>JS: Goi it nhat 2 ky tu vao o SKU
+    JS->>JS: Debounce 250ms
+    JS->>C: GET /pos/search?q=tu-khoa
+    C->>DB: Tim san pham active bang LOWER va LIKE ESCAPE
+    DB-->>C: Toi da 10 san pham
+    C-->>JS: data gom sku_code, name, unit, selling_price, current_stock
+    JS-->>T: Hien hop goi y, ho tro mui ten, Enter, Esc va click
+```
+
+`PosOrderController::timSanPham` bỏ qua từ khóa dưới 2 ký tự hoặc trên 50 ký tự bằng response `{"data":[]}` HTTP 200. API tìm `is_active=true`, so khớp một phần theo `sku_code` hoặc `name`, thoát `%`, `_`, `\` trước khi tạo điều kiện LIKE. Kết quả sắp xếp SKU khớp chính xác trước, SKU bắt đầu bằng từ khóa sau, rồi theo tên và giới hạn 10 dòng. Gợi ý không trả `cost_price`.
+
+Giao diện debounce 250 ms. Chỉ response của lần gọi mới nhất được đổ lên hộp gợi ý. Mũi tên lên/xuống chọn dòng, Enter chọn dòng đang sáng, Esc đóng, bấm chuột chọn và bấm ra ngoài đóng. Khi không có dòng sáng, Enter hoạt động như quét SKU cũ. Tồn kho bằng 0 vẫn hiển thị nhưng disabled và ghi Hết hàng.
+
 ## Luồng quét mã SKU
 
 `PosOrderController::scanBarcode` nhận `sku_code` bằng GET.
@@ -124,6 +148,29 @@ Response thành công:
   "unit": "Cái",
   "selling_price": 199000,
   "current_stock": 50
+}
+```
+
+### GET tìm gợi ý sản phẩm
+
+- URL: `/pos/search?q=<từ khóa>`.
+- Middleware: `auth`, `role:SALES`, `throttle:120,1`.
+- q dưới 2 ký tự hoặc trên 50 ký tự: HTTP 200 với `{"data":[]}`.
+- Chỉ trả tối đa 10 sản phẩm đang bán.
+
+Ví dụ response:
+
+```json
+{
+  "data": [
+    {
+      "sku_code": "SP001",
+      "name": "Áo Polo Nam Basic",
+      "unit": "Cái",
+      "selling_price": 199000,
+      "current_stock": 50
+    }
+  ]
 }
 ```
 
@@ -208,4 +255,12 @@ Nút in gọi `window.print`. CSS `@media print` trong `public/css/sims.css` ẩ
 
 ## Lịch sử giao dịch
 
-`PosOrderController::myHistory` lọc `cashier_id = Auth::id()` và eager load `details.product`. Dữ liệu giới hạn 50 hóa đơn mới nhất theo `id`. Giao diện không có filter ngày, phân trang, xem lại chi tiết hoặc in lại hóa đơn cũ.
+`PosOrderController::myHistory` lọc `cashier_id = Auth::id()` và eager load `details.product`. Mặc định không lọc ngày và hiển thị tất cả hóa đơn của thu ngân bằng `simplePaginate(20)`. Có thể gửi `start_date` và `end_date` theo định dạng YYYY-MM-DD, khoảng tối đa 366 ngày. Tổng số hóa đơn và tổng tiền chỉ tính hóa đơn COMPLETED bằng truy vấn tổng hợp, không cộng trên trang hiện tại.
+
+API lịch sử:
+
+- `GET /pos/history`: danh sách phân trang.
+- `GET /pos/history/{order}`: xem chi tiết hóa đơn; route chỉ nhận số và middleware role SALES.
+- Hóa đơn của thu ngân khác hoặc không tồn tại trả HTTP 404.
+
+Giao diện chi tiết dùng `pos/chi-tiet-hoa-don.blade.php`, hiển thị nhãn BẢN IN LẠI, nút In và nút Quay lại. View không hiển thị `unit_cost` hoặc giá vốn.

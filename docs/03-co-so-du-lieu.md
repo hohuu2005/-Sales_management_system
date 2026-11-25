@@ -101,7 +101,7 @@ Nguồn: `database/migrations/2026_10_28_162103_create_orders_table.php` và `Or
 | `payment_method` | enum | CASH hoặc VIETQR | Không cho null |
 | `status` | enum | COMPLETED hoặc CANCELLED | Mặc định COMPLETED |
 | `note` | varchar(255) | Ghi chú hóa đơn | Nullable, POS hiện chưa dùng |
-| `created_at` | timestamp | Thời điểm tạo | Index và nằm trong composite `(created_at,status)` |
+| `created_at` | timestamp | Thời điểm tạo | Index riêng, nằm trong composite `(created_at,status)` và có chỉ mục `(cashier_id,created_at)` cho lịch sử POS |
 
 ## Bảng order_details
 

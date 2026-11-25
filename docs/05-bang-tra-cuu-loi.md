@@ -30,6 +30,13 @@
 | `Thanh toán không thành công.` | Giao diện JS | Response checkout không OK nhưng không có message | `pos.js::checkout` | Đọc thông báo server nếu có; kiểm tra log |
 | `Không kết nối được máy chủ.` | Giao diện JS | fetch bị lỗi mạng hoặc không bắt được response | `pos.js::addBySku`, `pos.js::checkout` | Kiểm tra kết nối và Laravel server |
 | `Lỗi máy chủ (mã <status>).` | Giao diện JS | Response không phải JSON hoặc lỗi đọc JSON | `pos.js::readJson` | Kiểm tra mã HTTP và log server |
+| `Không có sản phẩm phù hợp.` | Giao diện JS | API `/pos/search` trả mảng rỗng | `pos.js::renderSuggestions` | Thử từ khóa khác hoặc quét mã SKU |
+| `Hết hàng` | Giao diện JS | Sản phẩm tìm được có `current_stock=0` | `pos.js::renderSuggestions` | Không chọn dòng này; nhập kho trước |
+| `Ngày bắt đầu phải đúng định dạng YYYY-MM-DD.` | 422 | start_date không theo định dạng ngày | `PosOrderController::myHistory` | Nhập lại ngày hợp lệ |
+| `Ngày kết thúc phải đúng định dạng YYYY-MM-DD.` | 422 | end_date không theo định dạng ngày | `PosOrderController::myHistory` | Nhập lại ngày hợp lệ |
+| `Ngày kết thúc không được trước ngày bắt đầu.` | 422 | end_date nhỏ hơn start_date | `PosOrderController::myHistory` | Chọn khoảng ngày hợp lệ |
+| `Khoảng lọc tối đa 366 ngày.` | 422 | Khoảng giữa hai ngày vượt 366 | `PosOrderController::myHistory` | Rút ngắn khoảng lọc |
+| `404 Not Found` | 404 | Hóa đơn không tồn tại hoặc không thuộc thu ngân đang đăng nhập | `PosOrderController::chiTietHoaDon` | Kiểm tra mã hóa đơn và tài khoản |
 | `Vui lòng chọn phương thức thanh toán.` | 422 | Thiếu payment_method | `PosOrderController::checkout` | Chọn CASH hoặc VIETQR |
 | `Phương thức thanh toán không hợp lệ.` | 422 | payment_method khác CASH/VIETQR | `PosOrderController::checkout` | Chọn đúng hai phương thức |
 | `Tiền khách đưa phải là số.` | 422 | customer_paid không phải số | `PosOrderController::checkout` | Nhập số hợp lệ |

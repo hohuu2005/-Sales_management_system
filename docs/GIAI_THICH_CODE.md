@@ -44,6 +44,9 @@ Thử nhanh: đăng nhập `banhang` rồi gõ địa chỉ `/stock-imports/crea
 | 5 | `PosOrderController::checkout()` | Kiểm tra dữ liệu, gọi `PosOrderService::checkout()` |
 | 6 | `PosOrderService::checkout()` | Mở transaction, khóa và kiểm tra tồn kho, tính tổng tiền theo giá trong CSDL, tạo `Order`, tạo `OrderDetail`, trừ kho, commit |
 | 7 | `pos.js` (`showReceipt`) | Hiện hóa đơn, làm trống giỏ hàng |
+| 8 | `PosOrderController::timSanPham()` | Tìm gợi ý theo tên hoặc một phần SKU, không trả giá vốn |
+| 9 | `PosOrderController::myHistory()` | Lọc và phân trang lịch sử chỉ của thu ngân đang đăng nhập |
+| 10 | `PosOrderController::chiTietHoaDon()` | Mở hóa đơn của chính mình để xem hoặc in lại, người khác trả 404 |
 
 Ba ý quan trọng trong `PosOrderService`:
 
