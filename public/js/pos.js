@@ -31,6 +31,7 @@
 
     // Mỗi phần tử: { sku_code, name, unit, price, stock, quantity }
     var cart = [];
+    var submitting = false;
 
     function formatMoney(value) {
         return Math.round(value).toLocaleString('vi-VN') + ' đ';
@@ -213,12 +214,21 @@
     // Nhân viên gõ tay số lượng trong giỏ.
     function changeQuantity(index, rawValue) {
         var item = cart[index];
-        var quantity = parseInt(rawValue, 10);
 
         clearMessage();
 
-        if (isNaN(quantity) || quantity < 1) {
-            quantity = 1;
+        var raw = String(rawValue).trim();
+        if (!/^\d+$/.test(raw)) {
+            showMessage('Số lượng phải là số nguyên từ 1 trở lên.');
+            render();
+            return;
+        }
+
+        var quantity = parseInt(raw, 10);
+        if (!Number.isSafeInteger(quantity) || quantity < 1) {
+            showMessage('Số lượng phải là số nguyên từ 1 trở lên.');
+            render();
+            return;
         }
 
         if (quantity > item.stock) {
@@ -332,6 +342,10 @@
 
     // Gửi giỏ hàng lên máy chủ để lưu hóa đơn và trừ tồn kho.
     function checkout() {
+        if (submitting) {
+            return;
+        }
+
         clearMessage();
 
         if (cart.length === 0) {
@@ -353,6 +367,7 @@
             return { sku_code: item.sku_code, quantity: item.quantity };
         });
 
+        submitting = true;
         checkoutBtn.disabled = true;
 
         fetch(checkoutUrl, {
@@ -384,6 +399,7 @@
                 showMessage('Không kết nối được máy chủ.');
             })
             .then(function () {
+                submitting = false;
                 checkoutBtn.disabled = false;
                 skuInput.focus();
             });
@@ -431,6 +447,14 @@
 
     document.addEventListener('keydown', function (event) {
         if (event.key === 'F9') {
+            if (event.repeat) {
+                return;
+            }
+
+            if (event.target && event.target.classList && event.target.classList.contains('input-qty')) {
+                return;
+            }
+
             event.preventDefault();
             checkout();
         }

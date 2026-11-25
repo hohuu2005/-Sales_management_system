@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use Exception;
+use App\Exceptions\PosException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -38,7 +38,7 @@ class Inventory extends Model
     public function deductStock(int $qty): void
     {
         if (! $this->hasEnoughStock($qty)) {
-            throw new Exception('Sản phẩm không đủ tồn kho!');
+            throw new PosException('Sản phẩm không đủ tồn kho!');
         }
 
         $this->decrement('current_stock', $qty);

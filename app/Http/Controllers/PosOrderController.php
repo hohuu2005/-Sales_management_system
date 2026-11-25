@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\PosException;
 use App\Models\Order;
 use App\Models\Product;
 use App\Services\PosOrderService;
@@ -54,10 +55,10 @@ class PosOrderController extends Controller
     {
         $data = $request->validate([
             'payment_method' => ['required', 'in:CASH,VIETQR'],
-            'customer_paid' => ['nullable', 'numeric', 'min:0'],
-            'items' => ['required', 'array', 'min:1'],
+            'customer_paid' => ['nullable', 'numeric', 'min:0', 'max:1000000000'],
+            'items' => ['required', 'array', 'min:1', 'max:100'],
             'items.*.sku_code' => ['required', 'string', 'max:50'],
-            'items.*.quantity' => ['required', 'integer', 'min:1'],
+            'items.*.quantity' => ['required', 'integer', 'min:1', 'max:9999'],
         ], [
             'items.required' => 'Giỏ hàng đang trống.',
             'payment_method.in' => 'Phương thức thanh toán không hợp lệ.',
@@ -70,9 +71,12 @@ class PosOrderController extends Controller
                 (float) ($data['customer_paid'] ?? 0),
                 $data['items'],
             );
-        } catch (Throwable $e) {
-            // Service đã rollBack. Trả lỗi để màn hình POS hiển thị và giữ nguyên giỏ hàng.
+        } catch (PosException $e) {
             return response()->json(['message' => $e->getMessage()], 422);
+        } catch (Throwable $e) {
+            report($e);
+
+            return response()->json(['message' => 'Lỗi hệ thống, vui lòng thử lại sau.'], 500);
         }
 
         return response()->json([

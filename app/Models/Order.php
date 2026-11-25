@@ -31,11 +31,6 @@ class Order extends Model
         'created_at' => 'datetime',
     ];
 
-    public static function generateOrderCode(): string
-    {
-        return 'ORD-' . date('YmdHis') . '-' . rand(100, 999);
-    }
-
     public function calculateChange(float $paid): float
     {
         return max(0, $paid - (float) $this->total_amount);
