@@ -66,8 +66,22 @@ class PosOrderController extends Controller
             'items.*.sku_code' => ['required', 'string', 'max:50'],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:9999'],
         ], [
-            'items.required' => 'Giỏ hàng đang trống.',
+            'payment_method.required' => 'Vui lòng chọn phương thức thanh toán.',
             'payment_method.in' => 'Phương thức thanh toán không hợp lệ.',
+            'customer_paid.numeric' => 'Tiền khách đưa phải là số.',
+            'customer_paid.min' => 'Tiền khách đưa không được âm.',
+            'customer_paid.max' => 'Tiền khách đưa tối đa 1.000.000.000 đ.',
+            'items.required' => 'Giỏ hàng đang trống.',
+            'items.array' => 'Dữ liệu giỏ hàng không hợp lệ.',
+            'items.min' => 'Giỏ hàng phải có ít nhất một sản phẩm.',
+            'items.max' => 'Giỏ hàng tối đa 100 dòng.',
+            'items.*.sku_code.required' => 'Vui lòng nhập mã SKU cho mỗi dòng.',
+            'items.*.sku_code.string' => 'Mã SKU phải là chuỗi ký tự.',
+            'items.*.sku_code.max' => 'Mã SKU tối đa 50 ký tự.',
+            'items.*.quantity.required' => 'Vui lòng nhập số lượng cho mỗi dòng.',
+            'items.*.quantity.integer' => 'Số lượng mỗi dòng phải là số nguyên.',
+            'items.*.quantity.min' => 'Số lượng mỗi dòng tối thiểu là 1.',
+            'items.*.quantity.max' => 'Số lượng mỗi dòng tối đa 9999.',
         ]);
 
         try {

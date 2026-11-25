@@ -228,6 +228,61 @@ class ThanhToanPosTest extends TestCase
         $this->assertDatabaseHas('inventories', ['product_id' => $product->id, 'current_stock' => 10]);
     }
 
+    public function test_so_luong_10000_bi_validation_422(): void
+    {
+        $sales = $this->createSalesUser();
+        [$product] = $this->createProduct([], ['current_stock' => 20000]);
+
+        $response = $this->actingAs($sales)->postJson('/pos/checkout', [
+            'payment_method' => 'CASH',
+            'customer_paid' => 1000000000,
+            'items' => [['sku_code' => 'SP001', 'quantity' => 10000]],
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonFragment(['items.0.quantity' => ['Số lượng mỗi dòng tối đa 9999.']]);
+        $this->assertDatabaseCount('orders', 0);
+        $this->assertDatabaseHas('inventories', ['product_id' => $product->id, 'current_stock' => 20000]);
+    }
+
+    public function test_gio_hang_101_dong_bi_validation_422(): void
+    {
+        $sales = $this->createSalesUser();
+        [$product] = $this->createProduct([], ['current_stock' => 200]);
+        $items = [];
+        for ($i = 0; $i < 101; $i++) {
+            $items[] = ['sku_code' => 'SP001', 'quantity' => 1];
+        }
+
+        $response = $this->actingAs($sales)->postJson('/pos/checkout', [
+            'payment_method' => 'CASH',
+            'customer_paid' => 10000000,
+            'items' => $items,
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonFragment(['items' => ['Giỏ hàng tối đa 100 dòng.']]);
+        $this->assertDatabaseCount('orders', 0);
+        $this->assertDatabaseHas('inventories', ['product_id' => $product->id, 'current_stock' => 200]);
+    }
+
+    public function test_tien_khach_dua_vuot_gioi_han_bi_validation_422(): void
+    {
+        $sales = $this->createSalesUser();
+        [$product] = $this->createProduct([], ['current_stock' => 10]);
+
+        $response = $this->actingAs($sales)->postJson('/pos/checkout', [
+            'payment_method' => 'CASH',
+            'customer_paid' => 1000000001,
+            'items' => [['sku_code' => 'SP001', 'quantity' => 1]],
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonFragment(['customer_paid' => ['Tiền khách đưa tối đa 1.000.000.000 đ.']]);
+        $this->assertDatabaseCount('orders', 0);
+        $this->assertDatabaseHas('inventories', ['product_id' => $product->id, 'current_stock' => 10]);
+    }
+
     public function test_ma_hoa_don_trung_se_thu_lai(): void
     {
         $sales = $this->createSalesUser();

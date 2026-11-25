@@ -384,7 +384,14 @@
             .then(function (result) {
                 if (!result.ok) {
                     // Lỗi (ví dụ hết hàng): báo lỗi và GIỮ NGUYÊN giỏ hàng.
-                    showMessage(result.data.message || 'Thanh toán không thành công.');
+                    var firstError = null;
+                    if (result.data.errors) {
+                        var errorKeys = Object.keys(result.data.errors);
+                        if (errorKeys.length > 0) {
+                            firstError = result.data.errors[errorKeys[0]][0];
+                        }
+                    }
+                    showMessage(firstError || result.data.message || 'Thanh toán không thành công.');
                     return;
                 }
 
