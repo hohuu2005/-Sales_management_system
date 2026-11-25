@@ -20,6 +20,9 @@
 | S8 | 25/11/2026 | Giới hạn dữ liệu đầu vào và thêm throttle | `PosOrderController.php`, `routes/web.php` | Xem git log |
 | S9 | 25/11/2026 | Chặn trừ tồn khi số lượng trừ lớn hơn tồn hiện tại | `Inventory.php` | Xem git log |
 | Đổi tên vòng tiếp theo | 25/11/2026 | Đặt lại tên exception, file test và hàm sinh mã bằng tiếng Việt không dấu | `LoiBanHangException.php`, `ThanhToanPosTest.php`, `PosOrderService.php` | Xem git log |
-| Tài liệu | 25/11/2026 | Viết bộ tài liệu hướng dẫn luồng bán hàng POS | `docs/` và `README.md` | Commit tài liệu sau khi hoàn tất |
+| Tài liệu | 25/11/2026 | Viết bộ tài liệu hướng dẫn luồng bán hàng POS | `docs/` và `README.md` | 7c1c195 |
+| Khôi phục Boost | 25/11/2026 | Khôi phục boost đã có sẵn trong commit gốc | `composer.json`, `composer.lock` | d7d4cfa |
+| Validation tiếng Việt | 25/11/2026 | Bổ sung message validation, hiển thị errors đầu tiên trong POS JS và test ba giới hạn | `PosOrderController.php`, `pos.js`, `ThanhToanPosTest.php`, `pos/index.blade.php` | e705c89 |
+| Đóng sổ tài liệu | 25/11/2026 | Cập nhật tài liệu cũ, hoàn thiện hướng dẫn MySQL và nhật ký | `docs/`, `README.md` | 708f204 |
 
 Chạy `git log --oneline -8` để xem mã commit và mô tả đầy đủ.

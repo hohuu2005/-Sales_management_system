@@ -18,6 +18,8 @@
 6. [06-huong-dan-kiem-thu.md](06-huong-dan-kiem-thu.md) - Kiểm thử tự động và checklist kiểm thử thủ công.
 7. [07-viec-con-thieu-va-ke-hoach.md](07-viec-con-thieu-va-ke-hoach.md) - Việc đã làm và công việc cần phát triển thêm.
 8. [08-nhat-ky-thay-doi.md](08-nhat-ky-thay-doi.md) - Ghi nhận thay đổi POS theo ngày và commit.
+9. [09-huong-dan-chay-mysql.md](09-huong-dan-chay-mysql.md) - Chạy dự án bằng MySQL XAMPP và kiểm thử lockForUpdate.
+10. [GIAI_THICH_CODE.md](GIAI_THICH_CODE.md) - Giải thích code từng tầng để trình bày hoặc ôn kiến thức.
 
 ## Muốn làm việc nào thì đọc file nào
 

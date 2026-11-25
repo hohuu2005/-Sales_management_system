@@ -8,6 +8,20 @@
 
 **File liên quan**: `tests/Feature/ThanhToanPosTest.php`, `tests/Feature/ExampleTest.php`, `app/Services/PosOrderService.php`, `public/js/pos.js`.
 
+## Cập nhật code từ nhánh này
+
+Sau khi chuyển sang nhánh `fix/pos-checkout`, chạy các lệnh sau:
+
+```bash
+git pull
+composer install
+php artisan migrate
+php artisan optimize:clear
+php artisan test
+```
+
+Hóa đơn cũ có thể có `order_details.unit_cost = 0` vì migration mới không truy ngược được giá vốn tại thời điểm tạo hóa đơn cũ.
+
 ## Chạy kiểm thử tự động
 
 ```bash

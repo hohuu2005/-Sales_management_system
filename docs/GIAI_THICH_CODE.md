@@ -50,6 +50,9 @@ Ba ý quan trọng trong `PosOrderService`:
 - **Transaction**: `DB::beginTransaction()` ... `DB::commit()`, lỗi thì `DB::rollBack()`. Nhờ vậy không bao giờ có chuyện đã lưu hóa đơn mà chưa trừ kho.
 - **Khóa dòng** `lockForUpdate()` (tức `SELECT ... FOR UPDATE`): khi một thu ngân đang thanh toán, thu ngân khác phải chờ ở dòng tồn kho đó. Tránh hai người cùng bán món hàng cuối cùng.
 - **Không tin giá từ trình duyệt**: trình duyệt chỉ gửi mã SKU và số lượng. Giá lấy từ bảng `products`. Nếu ai đó sửa giá trên trình duyệt thì cũng không có tác dụng.
+- **Gộp SKU trùng**: `PosOrderService::checkout()` cộng số lượng trước, dùng tiền tố `sku:` để mã toàn chữ số không bị PHP ép thành khóa số nguyên.
+- **Lỗi nghiệp vụ**: `LoiBanHangException` biểu thị thiếu tiền, hết hàng, ngừng bán hoặc mã hóa đơn không thể tạo; Controller trả HTTP 422.
+- **Lỗi hệ thống**: `Throwable` khác được ghi bằng `report($e)` và trả HTTP 500 với thông báo chung, không lộ chi tiết kỹ thuật.
 
 Tồn kho được kiểm tra hai lần: ở trình duyệt (báo lỗi ngay cho nhanh) và ở máy chủ (lần kiểm tra quyết định).
 
@@ -70,7 +73,7 @@ Tồn kho được kiểm tra hai lần: ở trình duyệt (báo lỗi ngay cho
 | `app/Models/Category.php` | Danh mục. Một danh mục có nhiều sản phẩm |
 | `app/Models/Product.php` | Sản phẩm. `findBySku()` tìm theo mã SKU. Cột `attributes_json` lưu thuộc tính động (size, màu, hạn dùng) |
 | `app/Models/Inventory.php` | Tồn kho, mỗi sản phẩm một dòng. `hasEnoughStock()`, `deductStock()`, `addStock()`, `isLowStock()` |
-| `app/Models/Order.php`, `OrderDetail.php` | Hóa đơn và các dòng chi tiết |
+| `app/Models/Order.php`, `OrderDetail.php` | Hóa đơn và các dòng chi tiết; `OrderDetail::unit_cost` lưu giá vốn chốt lúc bán |
 | `app/Models/StockImport.php`, `StockImportDetail.php` | Phiếu nhập và các dòng chi tiết |
 | `app/Services/PosOrderService.php` | Nghiệp vụ thanh toán |
 | `app/Services/StockImportService.php` | Nghiệp vụ nhập kho |
@@ -90,6 +93,12 @@ Người thanh toán trước khóa dòng tồn kho bằng `lockForUpdate()`. Ng
 
 **Vì sao lưu `unit_price` trong `order_details` khi `products` đã có giá?**
 Để giữ đúng giá tại thời điểm bán. Sau này Admin đổi giá sản phẩm thì hóa đơn cũ không bị đổi theo.
+
+**Vì sao còn lưu `unit_cost` trong `order_details`?**
+`unit_cost` là giá vốn chốt tại thời điểm bán, lấy từ `Product::cost_price` trong `PosOrderService::checkout()`. `cost_price` hiện tại trong bảng `products` có thể thay đổi sau nhập kho. Hóa đơn cũ có `unit_cost = 0` vì migration mới không truy ngược được giá vốn quá khứ.
+
+**Mã hóa đơn được sinh thế nào?**
+`PosOrderService::taoMaHoaDonUngVien()` tạo `ORD-YYYYMMDDHHMMSS-XXXX` bằng `random_int`. `taoMaHoaDonKhongTrung()` kiểm tra cột unique và thử tối đa 5 lần.
 
 **CSRF token là gì, dùng ở đâu?**
 Là một mã bí mật Laravel cấp cho mỗi phiên làm việc. Form có `@csrf`, còn màn hình POS gửi mã này trong header `X-CSRF-TOKEN`. Trang web lạ không biết mã này nên không thể giả mạo yêu cầu thay người dùng.
@@ -132,7 +141,7 @@ Nếu giá bán thấp hơn giá vốn, hệ thống vẫn lưu nhưng hiện c�
 | Báo cáo doanh thu | `ReportController::revenueReport()` gọi `buildRevenue()` | Chỉ tính hóa đơn `COMPLETED` trong khoảng ngày; ngày không có hóa đơn vẫn hiện cột bằng 0; tối đa 62 ngày |
 | Biểu đồ cột | `resources/views/reports/revenue.blade.php` | Vẽ bằng CSS: chiều cao mỗi cột là phần trăm so với ngày cao nhất, không dùng thư viện |
 | Báo cáo tồn kho | `ReportController::inventoryReport()` gọi `buildInventory()` | Sản phẩm có `current_stock <= safety_stock` xếp lên đầu; có bộ lọc chỉ hiện sản phẩm cần nhập thêm |
-| Nút cộng, trừ số lượng | `public/js/pos.js`, hàm `changeQuantity()` | Không cho nhỏ hơn 1 và không cho vượt tồn kho |
+| Nút cộng, trừ số lượng | `public/js/pos.js`, hàm `changeQuantity()` | Chỉ nhận số nguyên dương, không cho vượt tồn kho |
 | Nút chọn nhanh số tiền | `public/js/pos.js`, hàm `renderChips()` | Gợi ý: đúng tổng tiền, làm tròn lên 10.000, làm tròn lên 100.000, 500.000, 1.000.000 |
 
 ## 11. Những phần chưa làm (nên nói thẳng nếu thầy hỏi)
@@ -140,4 +149,4 @@ Nếu giá bán thấp hơn giá vốn, hệ thống vẫn lưu nhưng hiện c�
 - Mã QR chuyển khoản mới là hình minh họa, chưa sinh mã VietQR thật.
 - Chưa có tải ảnh sản phẩm.
 - Form thêm, sửa nằm ngay trên trang chứ chưa phải hộp thoại như bản thiết kế Figma.
-- Chưa có kiểm thử tự động.
+- Đã có kiểm thử tự động POS tại `tests/Feature/ThanhToanPosTest.php`; không thể thay thế kiểm thử đồng thời thật trên MySQL.
